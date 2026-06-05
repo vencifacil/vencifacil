@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "rewrites": [
-    { "source": "/app", "destination": "/app.html" },
-    { "source": "/privacidade", "destination": "/privacidade.html" }
-  ]
-}
