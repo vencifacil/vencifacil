@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -33,7 +32,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
 :root{
   /* Brand — Verde único, sem gradiente */
   --brand:       #16A34A;
-  --brand-dark:  #15803D;
+  --brand-dark:  #16A34A;
   --brand-light: #DCFCE7;
   --brand-xlight:#F0FDF4;
   /* Status — muted, profissional */
@@ -41,7 +40,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   --red-light:  #FEE2E2;
   --amber:      #B45309;
   --amber-light:#FEF3C7;
-  --orange:     #C2410C;
+  --orange:     #B45309;
   --green:      #16A34A;
   /* Neutrals — base do design */
   --bg:         #F8FAFC;
@@ -54,10 +53,10 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   --text-4:     #94A3B8;
   /* Legacy aliases */
   --blue:       #16A34A;
-  --blue-dark:  #15803D;
+  --blue-dark:  #16A34A;
   --indigo:     #B45309;
   --violet:     #A16207;
-  --orange:     #C2410C;
+  --orange:     #B45309;
   --slate-50:   #F8FAFC;
   --slate-100:  #F1F5F9;
   --slate-200:  #E2E8F0;
@@ -122,7 +121,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   color:var(--slate-800);
   letter-spacing:-.3px;line-height:1.2;
 }
-.brand-name span{color:#15803D}
+.brand-name span{color:#16A34A}
 .brand-sub{font-size:10.5px;color:var(--slate-400);font-weight:500;margin-top:1px;letter-spacing:.2px}
 
 /* Nav label group header */
@@ -150,7 +149,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
 .nav-icon{
   width:32px;height:32px;
   border-radius:var(--radius-sm);
-  background:#E4F5E7;
+  background:#F0FDF4;
   display:flex;align-items:center;justify-content:center;
   font-size:16px;line-height:1;
   flex-shrink:0;
@@ -175,7 +174,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   white-space:nowrap;
   z-index:10;
 }
-.sidebar-div{height:1px;background:#C8E6CF;margin:10px 0}
+.sidebar-div{height:1px;background:#DCFCE7;margin:10px 0}
 .sidebar-bot{margin-top:auto}
 
 /* ── Topbar ───────────────────────────────────────── */
@@ -192,7 +191,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   font-family:'Space Grotesk',sans-serif;
   font-size:19px;font-weight:700;color:var(--slate-800);letter-spacing:-.3px;
 }
-.page-sub{font-size:11.5px;color:#6B8F72;margin-top:2px;font-weight:500}
+.page-sub{font-size:11.5px;color:#64748B;margin-top:2px;font-weight:500}
 .topbar-actions{display:flex;gap:8px;align-items:center;-webkit-gap:8px}
 
 /* ── Buttons ──────────────────────────────────────── */
@@ -216,7 +215,7 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   border:1px solid var(--border);
   box-shadow:var(--shadow-sm);
 }
-.btn-secondary:hover{background:#F0FAF3;border-color:#A7D4AF;transform:translateY(-1px)}
+.btn-secondary:hover{background:#F0FAF3;border-color:#BBF7D0;transform:translateY(-1px)}
 .btn-danger{background:#FFF1F2;color:var(--red);border:1px solid #FECDD3}
 .btn-danger:hover{background:#FFE4E6}
 .btn-sm{padding:8px 14px;font-size:12.5px;border-radius:var(--radius-sm);min-height:34px}
@@ -256,15 +255,15 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
 }
 .stat-card.c-green ::before{background:#16A34A}
 .stat-card.c-red   ::before{background:#DC2626}
-.stat-card.c-amber ::before{background:#D97706}
-.stat-card.c-orange::before{background:#EA580C}
+.stat-card.c-amber ::before{background:#B45309}
+.stat-card.c-orange::before{background:#B45309}
 .stat-card.c-slate ::before{background:#64748B}
-.stat-card.c-indigo::before{background:#4F46E5}
+.stat-card.c-indigo::before{background:#16A34A}
 .stat-card.c-green::before {background:#16A34A}
 .stat-card.c-red::before   {background:#DC2626}
-.stat-card.c-amber::before {background:#D97706}
-.stat-card.c-orange::before{background:#EA580C}
-.stat-card.c-indigo::before{background:#4F46E5}
+.stat-card.c-amber::before {background:#B45309}
+.stat-card.c-orange::before{background:#B45309}
+.stat-card.c-indigo::before{background:#16A34A}
 .stat-card-icon{
   font-size:18px;margin-bottom:10px;line-height:1;display:block;
 }
@@ -281,11 +280,11 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
   letter-spacing:-.5px;
 }
 /* Value color per card type */
-.stat-card.c-green  .stat-val{color:#15803D}
+.stat-card.c-green  .stat-val{color:#16A34A}
 .stat-card.c-red    .stat-val{color:#DC2626}
-.stat-card.c-amber  .stat-val{color:#D97706}
-.stat-card.c-orange .stat-val{color:#EA580C}
-.stat-card.c-indigo .stat-val{color:#4F46E5}
+.stat-card.c-amber  .stat-val{color:#B45309}
+.stat-card.c-orange .stat-val{color:#B45309}
+.stat-card.c-indigo .stat-val{color:#16A34A}
 /* Zero values always grey */
 .stat-card .stat-val.zero{color:#CBD5E1}
 /* Subtle background tint */
@@ -315,11 +314,11 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
 
 /* Location mini cards */
 .loc-card{
-  background:#F4FCF6;border-radius:var(--radius);
+  background:#F0FDF4;border-radius:var(--radius);
   padding:14px 15px;border:1px solid var(--border);
   transition:all .18s;
 }
-.loc-card:hover{background:#fff;box-shadow:var(--shadow);border-color:#A7D4AF}
+.loc-card:hover{background:#fff;box-shadow:var(--shadow);border-color:#BBF7D0}
 
 /* ── Table ────────────────────────────────────────── */
 .table-wrap{
@@ -333,7 +332,7 @@ thead tr{background:#F2FAF4}
 th{
   padding:11px 18px;text-align:left;
   font-size:11px;font-weight:700;
-  color:#6B8F72;text-transform:uppercase;letter-spacing:.8px;
+  color:#64748B;text-transform:uppercase;letter-spacing:.8px;
   border-bottom:1px solid #D9EFE0;
   white-space:nowrap;
 }
@@ -353,7 +352,7 @@ tbody tr{transition:background .12s}
 tbody tr:hover td{background:#F2FAF5}
 .table-foot{
   padding:10px 18px;font-size:11.5px;
-  color:#6B8F72;font-weight:500;
+  color:#64748B;font-weight:500;
   background:#F2FAF4;
   border-top:1px solid #EAF5EC;
 }
@@ -393,12 +392,12 @@ tbody tr:hover td{background:#F2FAF5}
   letter-spacing:.1px;
 }
 .pill::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.pill-expired {background:#FFF1F2;color:#B91C1C;border:1px solid #FECACA}.pill-expired::before{background:#EF4444}
-.pill-today   {background:#FFF1F2;color:#B91C1C;border:1px solid #FECACA}.pill-today::before{background:#EF4444}
+.pill-expired {background:#FFF1F2;color:#B91C1C;border:1px solid #FECACA}.pill-expired::before{background:#DC2626}
+.pill-today   {background:#FFF1F2;color:#B91C1C;border:1px solid #FECACA}.pill-today::before{background:#DC2626}
 .pill-critical{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}.pill-critical::before{background:#F59E0B}
 .pill-warning {background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA}.pill-warning::before{background:#F97316}
-.pill-ok      {background:#F0FDF4;color:#14532D;border:1px solid #BBF7D0}.pill-ok::before{background:#22C55E}
-.pill-soon    {background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE}.pill-soon::before{background:#6366F1}
+.pill-ok      {background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}.pill-ok::before{background:#16A34A}
+.pill-soon    {background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE}.pill-soon::before{background:#16A34A}
 .cat-pill{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
 
 /* ── Modals & Overlays ────────────────────────────── */
@@ -424,13 +423,13 @@ tbody tr:hover td{background:#F2FAF5}
   font-size:16.5px;font-weight:700;color:var(--slate-800);letter-spacing:-.2px;
 }
 .close-btn{
-  background:#E4F5E7;border:none;
+  background:#F0FDF4;border:none;
   width:30px;height:30px;border-radius:var(--radius-sm);
   cursor:pointer;font-size:14px;color:var(--slate-500);
   display:flex;align-items:center;justify-content:center;
   transition:background .15s;font-weight:700;
 }
-.close-btn:hover{background:#C8E6CF}
+.close-btn:hover{background:#DCFCE7}
 
 /* Form fields */
 .field{margin-bottom:14px}
@@ -441,7 +440,7 @@ tbody tr:hover td{background:#F2FAF5}
 }
 .field input,.field select{
   width:100%;padding:12px 14px;
-  background:#F4FCF6;
+  background:#F0FDF4;
   border:1.5px solid var(--border);
   border-radius:var(--radius-sm);
   color:var(--slate-800);font-size:13.5px;font-weight:500;
@@ -458,7 +457,7 @@ tbody tr:hover td{background:#F2FAF5}
 
 /* ── Scanner ──────────────────────────────────────── */
 .scanner-tabs{
-  display:flex;background:#E4F5E7;
+  display:flex;background:#F0FDF4;
   border-radius:var(--radius-sm);padding:3px;
   margin-bottom:14px;gap:2px;
 }
@@ -560,7 +559,7 @@ tbody tr:hover td{background:#F2FAF5}
 .add-row{display:flex;gap:8px;align-items:center}
 .add-row input,.add-row select{
   padding:9px 12px;
-  background:#F4FCF6;
+  background:#F0FDF4;
   border:1.5px solid var(--border);
   border-radius:var(--radius-sm);
   color:var(--slate-800);font-size:13px;font-weight:500;
@@ -1041,7 +1040,7 @@ tbody tr:hover td{background:#F2FAF5}
 .login-profiles{margin-top:20px;padding-top:18px;border-top:1px solid var(--slate-100)}
 .login-profiles-title{font-size:11px;font-weight:600;color:var(--slate-400);text-align:center;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
 .login-profile-btn{width:100%;padding:10px 14px;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:9px;font-size:13px;cursor:pointer;text-align:left;margin-bottom:6px;transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:10px}
-.login-profile-btn:hover{background:#F0FDF4;border-color:#86EFAC}
+.login-profile-btn:hover{background:#F0FDF4;border-color:#BBF7D0}
 .login-profile-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:auto}
 /* User info in topbar */
 #topbar-user{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--slate-50);border:1px solid var(--slate-200);border-radius:8px;cursor:pointer;transition:all .15s}
@@ -1060,7 +1059,7 @@ tbody tr:hover td{background:#F2FAF5}
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
 }
-.mais-btn:active{background:#E8F5E9;color:#15803D}
+.mais-btn:active{background:#F0FDF4;color:#16A34A}
 
 /* ── iOS / iPhone Fixes ───────────────────────────── */
 /* Prevent text size adjustment on rotation */
@@ -1167,10 +1166,10 @@ select{-webkit-appearance:none;appearance:none;
 .adm-btn-green{background:#16A34A;color:#fff}
 .adm-btn-red{background:#DC2626;color:#fff}
 .adm-btn-slate{background:#334155;color:#94A3B8}
-.adm-btn-blue{background:#2563EB;color:#fff}
+.adm-btn-blue{background:#334155;color:#fff}
 .adm-status{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .adm-status-ativo{background:rgba(22,163,74,.15);color:#16A34A;border:1px solid rgba(22,163,74,.3)}
-.adm-status-trial{background:rgba(202,138,4,.15);color:#CA8A04;border:1px solid rgba(202,138,4,.3)}
+.adm-status-trial{background:rgba(202,138,4,.15);color:#B45309;border:1px solid rgba(202,138,4,.3)}
 .adm-status-bloq{background:rgba(220,38,38,.15);color:#DC2626;border:1px solid rgba(220,38,38,.3)}
 .adm-input{background:#0F172A;border:1px solid #334155;border-radius:8px;
   color:#E2E8F0;padding:9px 13px;font-size:13px;outline:none;font-family:inherit;width:100%}
@@ -1235,7 +1234,7 @@ select{-webkit-appearance:none;appearance:none;
   margin-bottom:6px;overflow:hidden;
   transition:border-color .15s;
 }
-.help-item.open{border-color:#86EFAC}
+.help-item.open{border-color:#BBF7D0}
 .help-q{
   width:100%;text-align:left;background:none;border:none;
   padding:10px 13px;font-size:13px;font-weight:600;color:#1E293B;
@@ -1298,7 +1297,7 @@ select{-webkit-appearance:none;appearance:none;
   flex:1;height:4px;border-radius:2px;background:#E2E8F0;transition:background .3s;
 }
 .cadastro-progress-bar.done{background:#16A34A}
-.cadastro-progress-bar.active{background:#CA8A04}
+.cadastro-progress-bar.active{background:#B45309}
 .cnpj-loading{display:none;color:#64748B;font-size:12px;margin-top:6px;
   align-items:center;gap:6px}
 .cnpj-loading.show{display:flex}
@@ -1412,7 +1411,7 @@ if('caches' in window){
         if(window._clienteCodigo){
           lu=lu.filter(function(u){return !u.codigo||u.codigo===window._clienteCodigo;});
         }
-        lu.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true});
+        lu.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true});
         window.USERS=lu;
         const ni=mS.docs.find(d=>d.id==='nextId');      if(ni) window.nextId=ni.data().value;
         const nt=mS.docs.find(d=>d.id==='trocaNextId'); if(nt) window.trocaNextId=nt.data().value;
@@ -1463,7 +1462,7 @@ if('caches' in window){
           if(window._clienteCodigo){
             lu=lu.filter(function(u){return !u.codigo||u.codigo===window._clienteCodigo;});
           }
-          lu.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true});
+          lu.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true});
           window.USERS=lu;
         }));
         return u;
@@ -1508,8 +1507,8 @@ if('caches' in window){
       </div>
     </div>
     <!-- Scan counter (visible in continuous mode) -->
-    <div id="scan-counter" style="display:none;background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:7px 12px;margin-bottom:10px;align-items:center;justify-content:space-between">
-      <span style="font-size:13px;color:#15803D;font-weight:600">✅ <span id="scan-count-num">0</span> produto(s) escaneados</span>
+    <div id="scan-counter" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:7px 12px;margin-bottom:10px;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;color:#16A34A;font-weight:600">✅ <span id="scan-count-num">0</span> produto(s) escaneados</span>
       <button onclick="closeScanner()" class="btn btn-primary" style="padding:5px 12px;font-size:12px">Concluir</button>
     </div>
     <div class="scanner-tabs">
@@ -1532,7 +1531,7 @@ if('caches' in window){
           class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px">
           📷 Abrir Câmera
         </button>
-        <div id="ios-scan-result" style="display:none;margin-top:14px;padding:12px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;font-size:13px;color:#15803D;font-weight:600"></div>
+        <div id="ios-scan-result" style="display:none;margin-top:14px;padding:12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;font-size:13px;color:#16A34A;font-weight:600"></div>
         <div id="ios-scan-loading" style="display:none;margin-top:14px;font-size:13px;color:#94A3B8">Processando imagem...</div>
       </div>
     </div>
@@ -1692,7 +1691,7 @@ if('caches' in window){
     <div class="settings-sec" id="settings-minha-conta-sec">
       <div class="settings-lbl">Minha Conta</div>
       <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:11px;margin-bottom:10px">
-        <div id="config-user-avatar" style="width:44px;height:44px;border-radius:50%;background:#EA580C;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👑</div>
+        <div id="config-user-avatar" style="width:44px;height:44px;border-radius:50%;background:#B45309;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👑</div>
         <div style="flex:1;min-width:0">
           <div id="config-user-nome" style="font-weight:700;font-size:14px;color:#1E293B">—</div>
           <div id="config-user-login" style="font-size:12px;color:#94A3B8;margin-top:2px">—</div>
@@ -1808,17 +1807,17 @@ if('caches' in window){
       <svg width="40" height="40" viewBox="0 0 38 38" fill="none">
         <rect width="38" height="38" rx="11" fill="#16A34A"/>
         <rect x="8" y="12" width="22" height="18" rx="3" fill="white" opacity=".95"/>
-        <rect x="8" y="12" width="22" height="6" rx="3" fill="#166534" opacity=".6"/>
-        <rect x="8" y="15" width="22" height="3" fill="#166534" opacity=".6"/>
+        <rect x="8" y="12" width="22" height="6" rx="3" fill="#16A34A" opacity=".6"/>
+        <rect x="8" y="15" width="22" height="3" fill="#16A34A" opacity=".6"/>
         <rect x="13" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
         <rect x="22.5" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
-        <circle cx="13" cy="24" r="1.3" fill="#86EFAC"/>
-        <circle cx="19" cy="24" r="1.3" fill="#86EFAC"/>
-        <circle cx="25" cy="24" r="1.3" fill="#86EFAC"/>
-        <circle cx="13" cy="28" r="1.3" fill="#86EFAC"/>
+        <circle cx="13" cy="24" r="1.3" fill="#BBF7D0"/>
+        <circle cx="19" cy="24" r="1.3" fill="#BBF7D0"/>
+        <circle cx="25" cy="24" r="1.3" fill="#BBF7D0"/>
+        <circle cx="13" cy="28" r="1.3" fill="#BBF7D0"/>
         <rect x="16.5" y="25.5" width="5" height="5" rx="2.5" fill="#FBBF24"/>
-        <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#15803D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="25" cy="28" r="1.3" fill="#86EFAC"/>
+        <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="25" cy="28" r="1.3" fill="#BBF7D0"/>
       </svg>
       <div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:#1E293B">Venci<span style="color:#16A34A">Fácil</span></div>
@@ -1886,15 +1885,15 @@ if('caches' in window){
   <svg width="64" height="64" viewBox="0 0 38 38" fill="none" style="margin-bottom:16px">
     <rect width="38" height="38" rx="11" fill="#16A34A"/>
     <rect x="8" y="12" width="22" height="18" rx="3" fill="white" opacity=".95"/>
-    <rect x="8" y="12" width="22" height="6" rx="3" fill="#166534" opacity=".6"/>
-    <rect x="8" y="15" width="22" height="3" fill="#166534" opacity=".6"/>
+    <rect x="8" y="12" width="22" height="6" rx="3" fill="#16A34A" opacity=".6"/>
+    <rect x="8" y="15" width="22" height="3" fill="#16A34A" opacity=".6"/>
     <rect x="13" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
     <rect x="22.5" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
-    <circle cx="13" cy="24" r="1.3" fill="#86EFAC"/>
-    <circle cx="19" cy="24" r="1.3" fill="#86EFAC"/>
-    <circle cx="25" cy="24" r="1.3" fill="#86EFAC"/>
+    <circle cx="13" cy="24" r="1.3" fill="#BBF7D0"/>
+    <circle cx="19" cy="24" r="1.3" fill="#BBF7D0"/>
+    <circle cx="25" cy="24" r="1.3" fill="#BBF7D0"/>
     <rect x="16.5" y="25.5" width="5" height="5" rx="2.5" fill="#FBBF24"/>
-    <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#15803D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
   <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#1E293B">Venci<span style="color:#16A34A">Fácil</span></div>
   <div style="font-size:13px;color:#94A3B8;margin-top:6px;margin-bottom:28px">Controle de Validades</div>
@@ -1927,22 +1926,22 @@ if('caches' in window){
           <rect width="38" height="38" rx="11" fill="url(#g1)"/>
           <defs>
             <linearGradient id="g1" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#22C55E"/>
-              <stop offset="1" stop-color="#15803D"/>
+              <stop stop-color="#16A34A"/>
+              <stop offset="1" stop-color="#16A34A"/>
             </linearGradient>
           </defs>
           <rect x="8" y="12" width="22" height="18" rx="3" fill="white" opacity=".95"/>
-          <rect x="8" y="12" width="22" height="6" rx="3" fill="#166534" opacity=".6"/>
-          <rect x="8" y="15" width="22" height="3" fill="#166534" opacity=".6"/>
+          <rect x="8" y="12" width="22" height="6" rx="3" fill="#16A34A" opacity=".6"/>
+          <rect x="8" y="15" width="22" height="3" fill="#16A34A" opacity=".6"/>
           <rect x="13" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
           <rect x="22.5" y="9" width="2.5" height="6" rx="1.25" fill="white"/>
-          <circle cx="13" cy="24" r="1.3" fill="#86EFAC"/>
-          <circle cx="19" cy="24" r="1.3" fill="#86EFAC"/>
-          <circle cx="25" cy="24" r="1.3" fill="#86EFAC"/>
-          <circle cx="13" cy="28" r="1.3" fill="#86EFAC"/>
+          <circle cx="13" cy="24" r="1.3" fill="#BBF7D0"/>
+          <circle cx="19" cy="24" r="1.3" fill="#BBF7D0"/>
+          <circle cx="25" cy="24" r="1.3" fill="#BBF7D0"/>
+          <circle cx="13" cy="28" r="1.3" fill="#BBF7D0"/>
           <rect x="16.5" y="25.5" width="5" height="5" rx="2.5" fill="#FBBF24"/>
-          <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#15803D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="25" cy="28" r="1.3" fill="#86EFAC"/>
+          <path d="M17.8 28l1.2 1.2 2.2-2.2" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="25" cy="28" r="1.3" fill="#BBF7D0"/>
         </svg>
       </div>
       <div class="brand-text">
@@ -2025,7 +2024,7 @@ if('caches' in window){
         <button onclick="openSettings();closeMaisMenu()" class="mais-btn" id="mais-config">⚙️<br/>Configurações</button>
 
       </div>
-      <button onclick="abrirTrocarSenha(false);closeMaisMenu()" style="width:100%;padding:11px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;font-size:13px;font-weight:700;color:#16A34A;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">🔑 Trocar Senha</button>
+      <button onclick="abrirTrocarSenha(false);closeMaisMenu()" style="width:100%;padding:11px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;font-size:13px;font-weight:700;color:#16A34A;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">🔑 Trocar Senha</button>
       <button onclick="doLogout();closeMaisMenu()" style="width:100%;padding:11px;background:#FFF1F2;border:1px solid #FECDD3;border-radius:10px;font-size:13px;font-weight:700;color:#DC2626;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">🚪 Sair do Sistema</button>
     </div>
   </div>
@@ -2034,11 +2033,11 @@ if('caches' in window){
     <div id="topbar">
       <div>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:30px;height:30px;display:none;flex-shrink:0;user-select:none;-webkit-user-select:none" id="mob-brand-icon" oncontextmenu="return false"><svg width="30" height="30" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="11" fill="url(#mbg)"/><defs><linearGradient id="mbg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#22C55E"/><stop offset="1" stop-color="#15803D"/></linearGradient></defs><rect x="8" y="12" width="22" height="18" rx="3" fill="white" opacity=".95"/><rect x="8" y="12" width="22" height="6" rx="3" fill="#15803D" opacity=".8"/><rect x="8" y="15" width="22" height="3" fill="#15803D" opacity=".8"/><rect x="13" y="9" width="3" height="6" rx="1.5" fill="white"/><rect x="22" y="9" width="3" height="6" rx="1.5" fill="white"/><circle cx="13" cy="24" r="1.2" fill="#86EFAC"/><circle cx="19" cy="24" r="1.2" fill="#86EFAC"/><circle cx="25" cy="24" r="1.2" fill="#86EFAC"/><circle cx="19" cy="28" r="1.2" fill="#FBBF24"/><path d="M17 28l1.5 1.5 3-3" stroke="#15803D" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div style="width:30px;height:30px;display:none;flex-shrink:0;user-select:none;-webkit-user-select:none" id="mob-brand-icon" oncontextmenu="return false"><svg width="30" height="30" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="11" fill="url(#mbg)"/><defs><linearGradient id="mbg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#16A34A"/><stop offset="1" stop-color="#16A34A"/></linearGradient></defs><rect x="8" y="12" width="22" height="18" rx="3" fill="white" opacity=".95"/><rect x="8" y="12" width="22" height="6" rx="3" fill="#16A34A" opacity=".8"/><rect x="8" y="15" width="22" height="3" fill="#16A34A" opacity=".8"/><rect x="13" y="9" width="3" height="6" rx="1.5" fill="white"/><rect x="22" y="9" width="3" height="6" rx="1.5" fill="white"/><circle cx="13" cy="24" r="1.2" fill="#BBF7D0"/><circle cx="19" cy="24" r="1.2" fill="#BBF7D0"/><circle cx="25" cy="24" r="1.2" fill="#BBF7D0"/><circle cx="19" cy="28" r="1.2" fill="#FBBF24"/><path d="M17 28l1.5 1.5 3-3" stroke="#16A34A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <div><div class="page-title" id="page-title">Dashboard</div>
           <div class="page-sub" id="page-date"></div></div></div>
       </div>
-      <div id="plano-badge" style="display:none;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:#F0FDF4;color:#15803D;border:1px solid #86EFAC">Grátis</div>
+      <div id="plano-badge" style="display:none;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0">Grátis</div>
       <div id="sync-status" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;font-weight:600;color:#64748B" title="Status da sincronização"><span id="sync-dot">⏳</span><span id="sync-label">Conectando...</span></div>
       <div id="topbar-user" onclick="showUserMenu()"><div class="user-avatar" id="user-avatar" style="background:#16A34A">D</div><span id="user-name-top" style="font-size:13px;font-weight:600;color:#334155">Administrador</span><span style="font-size:10px;color:#94A3B8">▾</span></div>
       <div class="topbar-actions">
@@ -2152,8 +2151,8 @@ if('caches' in window){
 function daysFromNow(n){var d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
 var categories=[
   {id:1,name:'Laticínios',color:'#F59E0B',icon:'🧀'},
-  {id:2,name:'Frios e Embutidos',color:'#EF4444',icon:'🥩'},
-  {id:3,name:'Padaria',color:'#8B5CF6',icon:'🍞'},
+  {id:2,name:'Frios e Embutidos',color:'#DC2626',icon:'🥩'},
+  {id:3,name:'Padaria',color:'#475569',icon:'🍞'},
   {id:4,name:'Bebidas',color:'#0891B2',icon:'🥤'},
   {id:5,name:'Hortifruti',color:'#10B981',icon:'🥦'},
   {id:6,name:'Mercearia',color:'#F97316',icon:'🛒'},
@@ -2188,10 +2187,10 @@ function getStatus(exp){
   var diff=Math.ceil((new Date(exp)-t)/864e5);
   if(diff<0)return{label:'Vencido',color:'#E11D48',badge:'expired',days:diff,cls:'pill-expired'};
   if(diff===0)return{label:'Hoje!',color:'#E11D48',badge:'today',days:0,cls:'pill-today'};
-  if(diff<=3)return{label:diff+'d',color:'#D97706',badge:'critical',days:diff,cls:'pill-critical'};
-  if(diff<=7)return{label:diff+'d',color:'#EA580C',badge:'warning',days:diff,cls:'pill-warning'};
-  if(diff<=30)return{label:diff+'d',color:'#6366F1',badge:'soon',days:diff,cls:'pill-soon'};
-  return{label:diff+'d',color:'#15803D',badge:'ok',days:diff,cls:'pill-ok'};
+  if(diff<=3)return{label:diff+'d',color:'#B45309',badge:'critical',days:diff,cls:'pill-critical'};
+  if(diff<=7)return{label:diff+'d',color:'#B45309',badge:'warning',days:diff,cls:'pill-warning'};
+  if(diff<=30)return{label:diff+'d',color:'#16A34A',badge:'soon',days:diff,cls:'pill-soon'};
+  return{label:diff+'d',color:'#16A34A',badge:'ok',days:diff,cls:'pill-ok'};
 }
 function fmtDate(s){return new Date(s+'T12:00:00').toLocaleDateString('pt-BR');}
 function getCat(id){return categories.find(function(c){return c.id===id;})||{name:'—',color:'#94A3B8',icon:'📦'};}
@@ -2211,7 +2210,7 @@ var notifTimer;
 function notify(msg,type){
   type=type||'success';
   var el=document.getElementById('notif');
-  var map={success:{bg:'#F0FDF4',bd:'#86EFAC',cl:'#15803D',ic:'✅'},warning:{bg:'#FFFBEB',bd:'#FDE68A',cl:'#D97706',ic:'⚠️'},info:{bg:'#EFF6FF',bd:'#BFDBFE',cl:'#1D4ED8',ic:'ℹ️'},error:{bg:'#FFF1F2',bd:'#FECDD3',cl:'#E11D48',ic:'❌'}};
+  var map={success:{bg:'#F0FDF4',bd:'#BBF7D0',cl:'#16A34A',ic:'✅'},warning:{bg:'#FFFBEB',bd:'#FDE68A',cl:'#B45309',ic:'⚠️'},info:{bg:'#F8FAFC',bd:'#E2E8F0',cl:'#334155',ic:'ℹ️'},error:{bg:'#FFF1F2',bd:'#FECDD3',cl:'#E11D48',ic:'❌'}};
   var s=map[type]||map.success;
   el.style.cssText='position:fixed;top:18px;right:18px;z-index:9999;border-radius:11px;padding:11px 15px;font-size:13px;font-weight:500;max-width:290px;animation:slideDown .22s ease;box-shadow:0 8px 22px rgba(0,0,0,.1);display:flex;align-items:center;gap:7px;background:'+s.bg+';border:1px solid '+s.bd+';color:'+s.cl;
   el.innerHTML=s.ic+' '+msg;
@@ -2416,10 +2415,10 @@ function renderResumoDia(){
     statusColor='#DC2626'; statusBg='#FFF1F2'; statusIcon='🚨';
   } else if(criticos>0){
     statusMsg='<b>Atenção:</b> '+criticos+' produto'+(criticos!==1?'s':'')+' vencem nos próximos 3 dias';
-    statusColor='#D97706'; statusBg='#FFFBEB'; statusIcon='⚠️';
+    statusColor='#B45309'; statusBg='#FFFBEB'; statusIcon='⚠️';
   } else {
     statusMsg='<b>Tudo em dia!</b> Nenhum produto crítico no momento.';
-    statusColor='#15803D'; statusBg='#F0FDF4'; statusIcon='✅';
+    statusColor='#16A34A'; statusBg='#F0FDF4'; statusIcon='✅';
   }
 
   var quickActions='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'
@@ -2483,7 +2482,7 @@ function renderDashboard(){
     }).join('');
 
   document.getElementById('status-chart').innerHTML='<div class="card-title">📊 Status de Validades</div>'
-    +[{l:'Vencidos',v:exp,c:'#DC2626'},{l:'Vencem Hoje',v:tod,c:'#DC2626'},{l:'Críticos 1–3 dias',v:crit,c:'#D97706'},{l:'Atenção 4–7 dias',v:warn,c:'#EA580C'},{l:'Próximos ≤30d',v:soon,c:'#4F46E5'},{l:'Em dia',v:ok,c:'#16A34A'}].map(function(r){
+    +[{l:'Vencidos',v:exp,c:'#DC2626'},{l:'Vencem Hoje',v:tod,c:'#DC2626'},{l:'Críticos 1–3 dias',v:crit,c:'#B45309'},{l:'Atenção 4–7 dias',v:warn,c:'#B45309'},{l:'Próximos ≤30d',v:soon,c:'#16A34A'},{l:'Em dia',v:ok,c:'#16A34A'}].map(function(r){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--slate-100,#F1F5F9)">'
         +'<div style="display:flex;align-items:center;gap:9px">'
         +'<div style="width:9px;height:9px;border-radius:50%;background:'+r.c+';flex-shrink:0"></div>'
@@ -2498,8 +2497,8 @@ function renderDashboard(){
       var alrt=products.filter(function(p){return p.location===l.id&&['expired','today','critical','warning'].includes(getStatus(p.expiry).badge);}).length;
       if(!cnt)return'';
       var pct=Math.round((cnt/maxL)*100);
-      var ac=alrt>0?(alrt>=cnt*0.5?'#E11D48':'#D97706'):'#15803D';
-      var atxt=alrt>0?('<span style="color:'+ac+';font-weight:600">⚠️ '+alrt+' alerta'+(alrt>1?'s':'')+'</span>'):'<span style="color:#15803D">✅ Sem alertas</span>';
+      var ac=alrt>0?(alrt>=cnt*0.5?'#E11D48':'#B45309'):'#16A34A';
+      var atxt=alrt>0?('<span style="color:'+ac+';font-weight:600">⚠️ '+alrt+' alerta'+(alrt>1?'s':'')+'</span>'):'<span style="color:#16A34A">✅ Sem alertas</span>';
       return '<div class="loc-card" onclick="setTab(\'products\')" style="cursor:pointer">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
         +'<div><div style="font-size:13px;font-weight:600;color:#1E293B">📍 '+l.name+'</div>'
@@ -2572,11 +2571,11 @@ function renderProducts(){
         +'</div></td>'
         +'<td data-label="Validade" style="color:#475569;font-size:13px;white-space:nowrap">'+fmtDate(p.expiry)+'</td>'
         +'<td data-label="Status"><span class="pill '+s.cls+'">'+sl+'</span></td>'
-        +'<td data-label="Qtd" style="font-weight:700;font-size:14px;color:'+(p.quantity<=p.minStock?'#D97706':'#1E293B')+';text-align:center">'+p.quantity+'</td>'
+        +'<td data-label="Qtd" style="font-weight:700;font-size:14px;color:'+(p.quantity<=p.minStock?'#B45309':'#1E293B')+';text-align:center">'+p.quantity+'</td>'
         +'<td style="text-align:right"><div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:nowrap;align-items:center">'
         +'<button onclick="imprimirEtiqueta('+p.id+')" class="btn btn-secondary btn-sm" title="Imprimir etiqueta">🏷️</button>'+'<button onclick="openEditProd('+p.id+')" class="btn btn-secondary btn-sm">✏️</button>'
-        +'<button onclick="abrirModalTroca('+p.id+')" class="btn btn-secondary btn-sm" style="background:#EFF6FF;color:#2563EB;border-color:#BFDBFE" title="Solicitar Troca">🔄</button>'
-        +'<button onclick="abrirModalRebaixa('+p.id+')" class="btn btn-secondary btn-sm" style="background:#FEFCE8;color:#CA8A04;border-color:#FDE68A" title="Rebaixar preço">💰</button>'
+        +'<button onclick="abrirModalTroca('+p.id+')" class="btn btn-secondary btn-sm" style="background:#F8FAFC;color:#334155;border-color:#E2E8F0" title="Solicitar Troca">🔄</button>'
+        +'<button onclick="abrirModalRebaixa('+p.id+')" class="btn btn-secondary btn-sm" style="background:#FEFCE8;color:#B45309;border-color:#FDE68A" title="Rebaixar preço">💰</button>'
         +(canDo('deletar')?'<button onclick="delProduct('+p.id+')" class="btn btn-danger btn-sm">🗑️</button>':'')+'</div></td></tr>';
     }).join('');
     var pagEl=document.getElementById('prod-pagination');
@@ -2615,15 +2614,15 @@ function renderAlerts(){
   if(!al.length){
     el.innerHTML=filterBar+'<div class="card" style="text-align:center;padding:52px">'
       +'<div style="font-size:48px;margin-bottom:12px">✅</div>'
-      +'<div style="font-family:\'Sora\',sans-serif;font-size:20px;font-weight:700;color:#15803D;margin-bottom:6px">Tudo em dia!</div>'
+      +'<div style="font-family:\'Sora\',sans-serif;font-size:20px;font-weight:700;color:#16A34A;margin-bottom:6px">Tudo em dia!</div>'
       +'<div style="color:#94A3B8;font-size:14px">Nenhum produto com alerta neste local.</div></div>';
     return;
   }
   el.innerHTML=filterBar+[
     {k:'expired',t:'❌ Vencidos',c:'#E11D48'},
     {k:'today',t:'⏰ Vencem Hoje',c:'#E11D48'},
-    {k:'critical',t:'⚠️ Críticos — 1 a 3 dias',c:'#D97706'},
-    {k:'warning',t:'🔶 Atenção — 4 a 7 dias',c:'#EA580C'},
+    {k:'critical',t:'⚠️ Críticos — 1 a 3 dias',c:'#B45309'},
+    {k:'warning',t:'🔶 Atenção — 4 a 7 dias',c:'#B45309'},
     {k:'soon',t:'🔵 Próximos — 8 a 30 dias',c:'#4338CA'},
   ].map(function(g){
     var gp=al.filter(function(p){return getStatus(p.expiry).badge===g.k;});
@@ -2664,9 +2663,9 @@ function renderReports(){
     {id:'category',icon:'🏷️',title:'Por Categoria',desc:'Produtos agrupados por categoria.',color:'#7C3AED'},
     {id:'location',icon:'📍',title:'Por Local / Seção',desc:'Produtos agrupados por seção do mercado.',color:'#10B981'},
     {id:'stock',icon:'📦',title:'Estoque Crítico',desc:'Produtos abaixo do estoque mínimo.',color:'#F59E0B'},
-    {id:'trocas',icon:'🔄',title:'Trocas por Fornecedor',desc:'Todas as trocas agrupadas por fornecedor com totais.',color:'#2563EB'},
-    {id:'baixas',icon:'📤',title:'Histórico de Baixas',desc:'Registro de todas as baixas com motivo, usuário e perda.',color:'#EA580C'},
-    {id:'rebaixas',icon:'💰',title:'Rebaixas de Preço',desc:'Histórico de todas as rebaixas aplicadas com desconto e economia gerada.',color:'#CA8A04'},
+    {id:'trocas',icon:'🔄',title:'Trocas por Fornecedor',desc:'Todas as trocas agrupadas por fornecedor com totais.',color:'#334155'},
+    {id:'baixas',icon:'📤',title:'Histórico de Baixas',desc:'Registro de todas as baixas com motivo, usuário e perda.',color:'#B45309'},
+    {id:'rebaixas',icon:'💰',title:'Rebaixas de Preço',desc:'Histórico de todas as rebaixas aplicadas com desconto e economia gerada.',color:'#B45309'},
   ];
   var isMob=window.innerWidth<=600;
   document.getElementById('reports-body').innerHTML=
@@ -3346,7 +3345,7 @@ function showPDFModal(dataUri, fname, title) {
     }).catch(function() {
       document.getElementById('pdf-loading').innerHTML =
         '<div style="font-size:32px">⚠️</div>'
-        +'<div style="color:#EF4444;text-align:center;padding:16px;font-size:13px">'
+        +'<div style="color:#DC2626;text-align:center;padding:16px;font-size:13px">'
         +'Erro ao exibir PDF.<br>Use o botão <b>⬇️ Baixar</b>.</div>';
     });
   }
@@ -3505,7 +3504,7 @@ var currentUser = null; // {nome, perfil, avatar, cor}
 
 // ── Usuários do sistema ───────────────────────────────────────────────────────
 var USERS = [
-  {usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true},
+  {usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true},
 ];
 // Permissões por perfil
 var PERMS = {
@@ -3681,9 +3680,9 @@ function applyUser(user){
     var plano=PLANOS[getPlanoAtivo()]||PLANOS.gratis;
     pb.style.display='flex';
     pb.textContent=plano.nome;
-    pb.style.background=getPlanoAtivo()==='pro'?'#EFF6FF':'#F0FDF4';
-    pb.style.color=getPlanoAtivo()==='pro'?'#2563EB':'#15803D';
-    pb.style.borderColor=getPlanoAtivo()==='pro'?'#BFDBFE':'#86EFAC';
+    pb.style.background=getPlanoAtivo()==='pro'?'#F8FAFC':'#F0FDF4';
+    pb.style.color=getPlanoAtivo()==='pro'?'#334155':'#16A34A';
+    pb.style.borderColor=getPlanoAtivo()==='pro'?'#E2E8F0':'#BBF7D0';
   }
   renderDashboard();
 }
@@ -3750,7 +3749,7 @@ function renderUsers(){
   if(!el) return;
   // Update Minha Conta section
   if(window.currentUser){
-    var coreMap={dono:'#EA580C',gerente:'#2563EB',repositor:'#16A34A'};
+    var coreMap={dono:'#B45309',gerente:'#334155',repositor:'#16A34A'};
     var av=document.getElementById('config-user-avatar');
     var nm=document.getElementById('config-user-nome');
     var lg=document.getElementById('config-user-login');
@@ -3759,7 +3758,7 @@ function renderUsers(){
     if(lg) lg.textContent='@'+(currentUser.usuario||'—');
   }
   var perfis={dono:'👑 Administrador',gerente:'👔 Gerente',repositor:'📦 Repositor'};
-  var cores={dono:'#EA580C',gerente:'#2563EB',repositor:'#16A34A'};
+  var cores={dono:'#B45309',gerente:'#334155',repositor:'#16A34A'};
   var visibleUsers=USERS.filter(function(u){
     if(u.master) return false;
     if(window._clienteCodigo) return u.codigo===window._clienteCodigo;
@@ -3790,7 +3789,7 @@ function addUser(){
     notify(getLimitMsg('addFuncionario'),'warning');return;
   }
   var avatars={dono:'👑',gerente:'👔',repositor:'📦'};
-  var cores={dono:'#EA580C',gerente:'#2563EB',repositor:'#16A34A'};
+  var cores={dono:'#B45309',gerente:'#334155',repositor:'#16A34A'};
   USERS.push({usuario:login,senha:senha,nome:nome,perfil:perfil,avatar:avatars[perfil],cor:cores[perfil]});
   document.getElementById('new-user-nome').value='';
   document.getElementById('new-user-login').value='';
@@ -3916,7 +3915,7 @@ function renderHistorico(){
       prodId:h.prodId, lote:h.lote,
       desc:h.motivo, qtd:h.qtd, perda:h.perda, user:h.user,
       icon:tipo==='troca'?'🔄':tipo==='descarte'?'🗑️':'⬇️',
-      cor:tipo==='troca'?'#2563EB':tipo==='descarte'?'#DC2626':'#EA580C',
+      cor:tipo==='troca'?'#334155':tipo==='descarte'?'#DC2626':'#B45309',
     });
   });
 
@@ -3927,7 +3926,7 @@ function renderHistorico(){
       desc:'Oferta: R$'+rb.precoOriginal.toFixed(2).replace('.',',')
         +' → R$'+rb.precoNovo.toFixed(2).replace('.',',')+' ('+rb.desconto+'% OFF)',
       qtd:rb.qty, perda:0, user:rb.user,
-      icon:'💰', cor:'#CA8A04',
+      icon:'💰', cor:'#B45309',
     });
   });
 
@@ -4009,10 +4008,10 @@ function renderHistorico(){
 
   var statsBar='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px">'
     +[
-      {l:'Baixas',v:totalBaixas,c:'#EA580C'},
-      {l:'Trocas',v:totalTrocas,c:'#2563EB'},
+      {l:'Baixas',v:totalBaixas,c:'#B45309'},
+      {l:'Trocas',v:totalTrocas,c:'#334155'},
       {l:'Descartes',v:totalDescartes,c:'#DC2626'},
-      {l:'Rebaixas',v:totalRebaixas,c:'#CA8A04'},
+      {l:'Rebaixas',v:totalRebaixas,c:'#B45309'},
       {l:'Perda Total',v:'R$'+totalPerda.toFixed(2).replace('.',','),c:'#DC2626'},
     ].map(function(s){
       return '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:10px;text-align:center">'
@@ -4073,7 +4072,7 @@ function renderRelatorioMensal(){
   var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">';
   html+='<div class="stat-card c-red"><span class="stat-card-icon">💸</span><div class="stat-lbl">Perda Este Mês</div><div class="stat-val" style="font-size:20px;color:'+(thisMes.perda>0?'#DC2626':'#CBD5E1')+'">R$ '+thisMes.perda.toFixed(2).replace('.',',')+'</div></div>';
   html+='<div class="stat-card c-amber"><span class="stat-card-icon">📊</span><div class="stat-lbl">vs Mês Anterior</div><div class="stat-val" style="font-size:22px;color:'+varColor+'">'+varTxt+'</div></div>';
-  html+='<div class="stat-card c-orange"><span class="stat-card-icon">📋</span><div class="stat-lbl">Total Acumulado</div><div class="stat-val" style="font-size:20px;color:#EA580C">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div></div>';
+  html+='<div class="stat-card c-orange"><span class="stat-card-icon">📋</span><div class="stat-lbl">Total Acumulado</div><div class="stat-val" style="font-size:20px;color:#B45309">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div></div>';
   html+='</div>';
 
   // Bar chart
@@ -4097,7 +4096,7 @@ function renderRelatorioMensal(){
     var m=byMonth[k];
     var topMotivo=Object.keys(m.motivos).sort(function(a,b){return m.motivos[b]-m.motivos[a];})[0]||'—';
     var isThis=k===thisMonthKey;
-    html+='<tr style="'+(isThis?'background:#FFF7ED':'')+'"><td style="font-weight:'+(isThis?'700':'500')+';color:#1E293B">'+m.label+(isThis?' <span style="font-size:10px;color:#EA580C;font-weight:700">(este mês)</span>':'')+'</td>'
+    html+='<tr style="'+(isThis?'background:#FFF7ED':'')+'"><td style="font-weight:'+(isThis?'700':'500')+';color:#1E293B">'+m.label+(isThis?' <span style="font-size:10px;color:#B45309;font-weight:700">(este mês)</span>':'')+'</td>'
       +'<td style="text-align:center;color:#475569">'+m.baixas+'</td>'
       +'<td style="text-align:center;color:#475569">'+m.qtd+' un.</td>'
       +'<td style="font-weight:700;color:#DC2626">R$ '+m.perda.toFixed(2).replace('.',',')+'</td>'
@@ -4154,10 +4153,10 @@ var MOTIVOS_TROCA = [
 ];
 
 var STATUS_TROCA = {
-  pendente:   {label:'Pendente',   color:'#D97706', bg:'#FFFBEB', border:'#FDE68A'},
-  enviado:    {label:'Enviado',    color:'#2563EB', bg:'#EFF6FF', border:'#BFDBFE'},
+  pendente:   {label:'Pendente',   color:'#B45309', bg:'#FFFBEB', border:'#FDE68A'},
+  enviado:    {label:'Enviado',    color:'#334155', bg:'#F8FAFC', border:'#E2E8F0'},
   confirmado: {label:'Confirmado', color:'#7C3AED', bg:'#F5F3FF', border:'#DDD6FE'},
-  concluido:  {label:'Concluído',  color:'#16A34A', bg:'#F0FDF4', border:'#86EFAC'},
+  concluido:  {label:'Concluído',  color:'#16A34A', bg:'#F0FDF4', border:'#BBF7D0'},
   cancelado:  {label:'Cancelado',  color:'#94A3B8', bg:'#F8FAFC', border:'#E2E8F0'},
   descartado: {label:'Descartado', color:'#DC2626', bg:'#FFF1F2', border:'#FECDD3'},
 };
@@ -4167,7 +4166,7 @@ function abrirModalTroca(prodId){
   if(!p) return;
   var s=getStatus(p.expiry);
   var opts=MOTIVOS_TROCA.map(function(m){return'<option>'+m+'</option>';}).join('');
-  var statusCor=s.badge==='expired'||s.badge==='today'?'#DC2626':'#D97706';
+  var statusCor=s.badge==='expired'||s.badge==='today'?'#DC2626':'#B45309';
   var html='<div class="overlay open" id="modal-troca" style="z-index:910">'
     +'<div class="modal" style="width:440px">'
     +'<div class="modal-hdr">'
@@ -4449,11 +4448,11 @@ function renderTrocas(){
   var navBar='<div style="display:flex;align-items:center;justify-content:space-between;'
     +'flex-wrap:wrap;gap:10px;margin-bottom:16px;padding:12px 16px;'
     +'background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px">'
-    +'<div style="font-size:13px;color:#64748B">Você está em <b style="color:#2563EB">Trocas</b></div>'
+    +'<div style="font-size:13px;color:#64748B">Você está em <b style="color:#334155">Trocas</b></div>'
     +'<div style="display:flex;gap:8px">'
     +(ativas>0
       ?'<button onclick="setTab(&quot;rebaixas&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">'
-        +'💰 Ver Rebaixas <span style="background:#CA8A04;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">'+ativas+'</span>'
+        +'💰 Ver Rebaixas <span style="background:#B45309;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">'+ativas+'</span>'
         +'</button>'
       :'<button onclick="setTab(&quot;rebaixas&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">💰 Ver Rebaixas</button>')
     +'<button onclick="setTab(&quot;historico&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">📋 Ver Histórico</button>'
@@ -4484,7 +4483,7 @@ function renderTrocas(){
     var active=filtroStatus===tab.k;
     html+='<button onclick="setFiltroTrocaStr(\''+tab.k+'\')\" style="'
       +'padding:8px 16px;border-radius:20px;border:1.5px solid '+(active?'#16A34A':'#E2E8F0')+';'
-      +'background:'+(active?'#F0FDF4':'#fff')+';color:'+(active?'#15803D':'#64748B')+';'
+      +'background:'+(active?'#F0FDF4':'#fff')+';color:'+(active?'#16A34A':'#64748B')+';'
       +'font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">'
       +tab.l+(tab.n>0?' ('+tab.n+')':'')+'</button>';
   });
@@ -4531,7 +4530,7 @@ function renderTrocas(){
           +'</div>'
           +'<div style="display:flex;flex-direction:row;gap:5px;flex-shrink:0;align-items:center">'
           +(showWA
-            ?'<button onclick="atualizarStatusTrocaEl(this,\'concluido\')" data-id="'+t.id+'" class="btn btn-sm" style="background:#F0FDF4;color:#16A34A;border:1px solid #86EFAC;font-size:11px">✅ Concluir</button>'
+            ?'<button onclick="atualizarStatusTrocaEl(this,\'concluido\')" data-id="'+t.id+'" class="btn btn-sm" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;font-size:11px">✅ Concluir</button>'
             +'<button onclick="descarteTrocaEl(this)" data-id="'+t.id+'" class="btn btn-sm" style="background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3;font-size:11px" title="Fornecedor recusou — descartar">🗑️ Descarte</button>'
             :'')
           +'<button onclick="cancelarTrocaEl(this)" data-id="'+t.id+'" class="btn btn-sm" style="background:#FFF1F2;color:#DC2626;border:1px solid #FECDD3;font-size:11px">✕ Cancelar</button>'
@@ -4543,9 +4542,9 @@ function renderTrocas(){
   }
 
   if(filtroStatus==='pendente'){
-    html+=grupoForn(trocas.filter(function(t){return t.status==='pendente';}), '#D97706', true);
+    html+=grupoForn(trocas.filter(function(t){return t.status==='pendente';}), '#B45309', true);
   } else if(filtroStatus==='enviado'){
-    html+=grupoForn(trocas.filter(function(t){return t.status==='enviado';}), '#2563EB', true);
+    html+=grupoForn(trocas.filter(function(t){return t.status==='enviado';}), '#334155', true);
   } else {
     var hist=trocas.filter(function(t){return t.status==='concluido'||t.status==='cancelado'||t.status==='descartado';});
     if(!hist.length){
@@ -4737,8 +4736,8 @@ function renderAdmDashboard(){
   document.getElementById('adm-stats').innerHTML=[
     {l:'Total Clientes',v:total,         c:'#16A34A'},
     {l:'Ativos',        v:ativos,         c:'#16A34A'},
-    {l:'Em Trial',      v:trials,         c:'#CA8A04'},
-    {l:'Receita/mês',   v:'R$ '+receita.toFixed(2).replace('.',','), c:'#2563EB'},
+    {l:'Em Trial',      v:trials,         c:'#B45309'},
+    {l:'Receita/mês',   v:'R$ '+receita.toFixed(2).replace('.',','), c:'#334155'},
   ].map(function(s){
     return '<div class="adm-stat">'
       +'<div class="adm-stat-val" style="color:'+s.c+'">'+s.v+'</div>'
@@ -4768,7 +4767,7 @@ function renderAdmClientes(){
     var statusHtml='<span class="adm-status adm-status-'+cl.status+'">'+
       {ativo:'Ativo',trial:'Trial',bloqueado:'Bloqueado'}[cl.status]+'</span>';
     if(vencendo&&cl.status!=='bloqueado')
-      statusHtml+='<span style="font-size:10px;color:#EF4444;display:block;margin-top:2px">⚠️ Vencido</span>';
+      statusHtml+='<span style="font-size:10px;color:#DC2626;display:block;margin-top:2px">⚠️ Vencido</span>';
 
     return '<tr>'
       +'<td><div style="font-weight:700;color:#fff">'+cl.nome+'</div>'
@@ -4784,7 +4783,7 @@ function renderAdmClientes(){
       +(cl.status!=='bloqueado'?'<button onclick="admBloquear('+cl.id+')" class="adm-btn adm-btn-red" style="font-size:11px">🚫</button>':'')
       +'<button onclick="admWpp('+cl.id+')" class="adm-btn adm-btn-blue" style="font-size:11px">📱</button>'
       +'<button onclick="admEditar('+cl.id+')" class="adm-btn adm-btn-slate" style="font-size:11px">✏️</button>'
-      +'<button onclick="admRedefinirSenha('+cl.id+')" class="adm-btn" style="font-size:11px;background:#FEF9C3;color:#92400E;border:1px solid #FDE68A">🔑</button>'
+      +'<button onclick="admRedefinirSenha('+cl.id+')" class="adm-btn" style="font-size:11px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A">🔑</button>'
       +'<button onclick="admExcluir('+cl.id+')" class="adm-btn adm-btn-red" style="font-size:11px">🗑️</button>'
       +'</div></td>'
       +'</tr>';
@@ -4834,7 +4833,7 @@ async function cadBuscarCEP(){
   var cep = document.getElementById('cad-cep').value.replace(/\D/g,'');
   var status = document.getElementById('cad-cep-status');
   if(cep.length !== 8){
-    status.style.display='block'; status.style.color='#EF4444';
+    status.style.display='block'; status.style.color='#DC2626';
     status.textContent='CEP deve ter 8 dígitos.'; return;
   }
   status.style.display='block'; status.style.color='#94A3B8';
@@ -4860,7 +4859,7 @@ async function cadBuscarCEP(){
     status.style.color='#16A34A';
     status.textContent='✅ '+d.logradouro+(d.bairro?', '+d.bairro:'')+' — '+d.localidade+'/'+d.uf;
   }catch(e){
-    status.style.color='#EF4444';
+    status.style.color='#DC2626';
     status.textContent='❌ CEP não encontrado. Preencha manualmente.';
   }
 }
@@ -4875,7 +4874,7 @@ async function admBuscarCEP(){
   var cep = document.getElementById('adm-f-cep').value.replace(/\D/g,'');
   var status = document.getElementById('adm-cep-status');
   if(cep.length !== 8){
-    status.style.display='block'; status.style.color='#EF4444';
+    status.style.display='block'; status.style.color='#DC2626';
     status.textContent='CEP deve ter 8 dígitos.'; return;
   }
   status.style.display='block'; status.style.color='#94A3B8';
@@ -4896,7 +4895,7 @@ async function admBuscarCEP(){
     status.style.color='#16A34A';
     status.textContent='✅ '+d.logradouro+(d.bairro?', '+d.bairro:'')+' — '+d.localidade+'/'+d.uf;
   }catch(e){
-    status.style.color='#EF4444';
+    status.style.color='#DC2626';
     status.textContent='❌ CEP não encontrado. Preencha manualmente.';
   }
 }
@@ -4949,7 +4948,7 @@ function admFormatDoc(inp){
       // CPF — fill doc field only (no public API for CPF data)
       document.getElementById('adm-f-doc').value=f;
       var st=document.getElementById('adm-cnpj-status');
-      if(st){st.style.display='block';st.style.color='#CA8A04';
+      if(st){st.style.display='block';st.style.color='#B45309';
         st.textContent='ℹ️ CPF registrado. Preencha os demais dados manualmente.';}
     }
   }
@@ -4965,7 +4964,7 @@ async function admBuscarCNPJ(){
   var status=document.getElementById('adm-cnpj-status');
   if(raw.length!==14){
     status.style.display='block';
-    status.style.color='#EF4444';
+    status.style.color='#DC2626';
     status.textContent='⚠️ CNPJ deve ter 14 dígitos.';
     return;
   }
@@ -4995,7 +4994,7 @@ async function admBuscarCNPJ(){
     status.style.color='#16A34A';
     status.textContent='✅ Empresa: '+d.razao_social+(d.municipio?' — '+d.municipio+'/'+d.uf:'');
   }catch(e){
-    status.style.color='#EF4444';
+    status.style.color='#DC2626';
     status.textContent='❌ CNPJ não encontrado. Preencha manualmente.';
   }
 }
@@ -5141,7 +5140,7 @@ function salvarAdmCliente(){
       nome:resp+' (Administrador)',
       perfil:'dono',
       avatar:'👑',
-      cor:'#EA580C',
+      cor:'#B45309',
       codigo:novoCodigo,
       primeiroAcesso:true,
     };
@@ -5205,11 +5204,11 @@ function loadData(){
         return false; // no client code = only master
       });
       if(!USERS.find(function(u){return u.master;}))
-        USERS.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true});
+        USERS.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true});
     }
     // Always ensure master user exists after loading from localStorage
     if(!USERS.find(function(u){return u.master;})){
-      USERS.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true});
+      USERS.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true});
     }
     var pf=localStorage.getItem('pc_fornecedores');if(pf) fornecedores=JSON.parse(pf);
     var prb=localStorage.getItem('pc_rebaixas');if(prb) rebaixas=JSON.parse(prb);
@@ -5263,9 +5262,9 @@ function abrirModalRebaixa(prodId){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px">'
     +'<div class="field"><label>Desconto (%)</label>'
     +'<input type="number" id="rb-desconto" value="'+descPadrao+'" min="0" max="99" oninput="calcNovoPreco('+precoAtual+')" style="width:100%;padding:10px 13px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:9px;font-size:14px;outline:none;font-family:inherit"/></div>'
-    +'<div id="rb-preview" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FEF9C3;border:1.5px solid #FDE68A;border-radius:9px;padding:10px">'
+    +'<div id="rb-preview" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FEF3C7;border:1.5px solid #FDE68A;border-radius:9px;padding:10px">'
     +'<div style="font-size:10px;color:#92400E;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Economia</div>'
-    +'<div id="rb-economia" style="font-size:18px;font-weight:900;color:#CA8A04">R$ '+(precoAtual*descPadrao/100).toFixed(2).replace('.',',')+'</div>'
+    +'<div id="rb-economia" style="font-size:18px;font-weight:900;color:#B45309">R$ '+(precoAtual*descPadrao/100).toFixed(2).replace('.',',')+'</div>'
     +'</div></div>'
     +'<div class="field" style="margin-bottom:16px"><label>Observação (opcional)</label>'
     +'<input type="text" id="rb-obs" placeholder="Ex: Próximo do vencimento, liquidação" style="width:100%;padding:10px 13px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:9px;font-size:14px;outline:none;font-family:inherit"/></div>'
@@ -5491,11 +5490,11 @@ function renderRebaixas(){
   var navBarRb='<div style="display:flex;align-items:center;justify-content:space-between;'
     +'flex-wrap:wrap;gap:10px;margin-bottom:16px;padding:12px 16px;'
     +'background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px">'
-    +'<div style="font-size:13px;color:#64748B">Você está em <b style="color:#CA8A04">Rebaixas</b></div>'
+    +'<div style="font-size:13px;color:#64748B">Você está em <b style="color:#B45309">Rebaixas</b></div>'
     +'<div style="display:flex;gap:8px">'
     +(pendTrocas>0
       ?'<button onclick="setTab(&quot;trocas&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">'
-        +'🔄 Ver Trocas <span style="background:#2563EB;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">'+pendTrocas+'</span>'
+        +'🔄 Ver Trocas <span style="background:#334155;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">'+pendTrocas+'</span>'
         +'</button>'
       :'<button onclick="setTab(&quot;trocas&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">🔄 Ver Trocas</button>')
     +'<button onclick="setTab(&quot;historico&quot;)" class="btn btn-secondary" style="font-size:12px;padding:6px 12px">📋 Ver Histórico</button>'
@@ -5517,7 +5516,7 @@ function renderRebaixas(){
       var dt=new Date(rb.data).toLocaleDateString('pt-BR');
       var p=products.find(function(x){return x.id===rb.prodId;});
       var estoqueAtual=p?p.quantity:0;
-      html+='<div class="card" style="margin-bottom:12px;border-left:4px solid #CA8A04">'
+      html+='<div class="card" style="margin-bottom:12px;border-left:4px solid #B45309">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">'
         +'<div><div style="font-weight:700;font-size:14px;color:#1E293B">'+rb.prodName+'</div>'
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:11.5px;color:#64748B">'
@@ -5528,7 +5527,7 @@ function renderRebaixas(){
         +(rb.obs?'<span style="color:#94A3B8;font-style:italic">'+rb.obs+'</span>':'')
         +'</div></div>'
         +'<div style="display:flex;gap:6px">'
-        +'<button onclick="imprimirCartazOferta('+rb.id+')" class="btn btn-sm" style="background:#FEFCE8;color:#CA8A04;border:1px solid #FDE68A">🖨️ Cartaz</button>'
+        +'<button onclick="imprimirCartazOferta('+rb.id+')" class="btn btn-sm" style="background:#FEFCE8;color:#B45309;border:1px solid #FDE68A">🖨️ Cartaz</button>'
         +'<button onclick="encerrarRebaixa('+rb.id+')" class="btn btn-sm" style="background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0">✕ Encerrar</button>'
         +'</div></div>'
         +'<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">'
@@ -5536,14 +5535,14 @@ function renderRebaixas(){
         +'<div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Preço Anterior</div>'
         +'<div style="font-size:16px;font-weight:700;color:#94A3B8;text-decoration:line-through">R$ '+rb.precoOriginal.toFixed(2).replace('.',',')+'</div>'
         +'</div>'
-        +'<div style="font-size:22px;color:#CA8A04;font-weight:900">→</div>'
+        +'<div style="font-size:22px;color:#B45309;font-weight:900">→</div>'
         +'<div style="text-align:center">'
-        +'<div style="font-size:10px;color:#CA8A04;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px">Novo Preço</div>'
-        +'<div style="font-size:22px;font-weight:900;color:#CA8A04">R$ '+rb.precoNovo.toFixed(2).replace('.',',')+'</div>'
+        +'<div style="font-size:10px;color:#B45309;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px">Novo Preço</div>'
+        +'<div style="font-size:22px;font-weight:900;color:#B45309">R$ '+rb.precoNovo.toFixed(2).replace('.',',')+'</div>'
         +'</div>'
-        +(rb.desconto>0?'<div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:10px;padding:8px 14px;text-align:center">'
+        +(rb.desconto>0?'<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:8px 14px;text-align:center">'
           +'<div style="font-size:10px;color:#92400E;font-weight:700">DESCONTO</div>'
-          +'<div style="font-size:22px;font-weight:900;color:#CA8A04">'+rb.desconto+'%</div></div>':'')
+          +'<div style="font-size:22px;font-weight:900;color:#B45309">'+rb.desconto+'%</div></div>':'')
         +'</div></div>';
     });
   }
@@ -5951,7 +5950,7 @@ async function finalizarCadastro(){
     nome:_cadData.fantasia,
     perfil:'dono',
     avatar:'👑',
-    cor:'#EA580C',
+    cor:'#B45309',
     codigo:novoCodigo,
   });
 
@@ -5967,7 +5966,7 @@ async function finalizarCadastro(){
   window._planoAtivo='trial';
   window._clienteCodigo=novoCodigo;
   sessionStorage.setItem('pc_codigo',novoCodigo);
-  var newUser={usuario:email,nome:_cadData.fantasia,perfil:'dono',avatar:'👑',cor:'#EA580C',codigo:novoCodigo};
+  var newUser={usuario:email,nome:_cadData.fantasia,perfil:'dono',avatar:'👑',cor:'#B45309',codigo:novoCodigo};
   fecharCadastro();
   notify('Conta criada! Bem-vindo ao VenciFácil 🎉');
   if(window._fb&&window._fbReady){
@@ -6113,7 +6112,7 @@ function checkTrialStatus(){
     }
     // Update badge
     var pb=document.getElementById('plano-badge');
-    if(pb){pb.textContent='Trial · '+dias+'d';pb.style.background='#FEF9C3';pb.style.color='#92400E';pb.style.borderColor='#FDE68A';}
+    if(pb){pb.textContent='Trial · '+dias+'d';pb.style.background='#FEF3C7';pb.style.color='#92400E';pb.style.borderColor='#FDE68A';}
   }
 }
 
@@ -6293,7 +6292,7 @@ function renderNFeItens(){
   }).join('');
 
   var html=_nfeItens.map(function(it,i){
-    var existClass=it.existing?'style="background:#F0FDF4;border:1px solid #86EFAC"':'style="background:#fff;border:1px solid #E2E8F0"';
+    var existClass=it.existing?'style="background:#F0FDF4;border:1px solid #BBF7D0"':'style="background:#fff;border:1px solid #E2E8F0"';
     var existBadge=it.existing?'<span style="font-size:10px;background:#16A34A;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px">já cadastrado</span>':'';
     return '<div class="card" '+existClass+' style="margin-bottom:10px;padding:14px;border-radius:12px">'
       // Row 1: checkbox + name
@@ -6316,7 +6315,7 @@ function renderNFeItens(){
       +'style="flex:1;padding:7px 10px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;outline:none;font-family:inherit"/>'
       +'</div></div>'
       // Qty + Conversão
-      +'<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11.5px;color:#1E40AF;grid-column:1/-1">'
+      +'<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11.5px;color:#334155;grid-column:1/-1">'
       +'💡 Ex: NF veio com <b>1 FD</b> a R$12,00? Coloque <b>12</b> UN por embalagem → sistema calcula <b>12 UN</b> a <b>R$1,00/un</b>'
       +'</div>'
       +'<div class="field">'
@@ -6479,7 +6478,7 @@ function clearAllData(){
   window.historico=[];window.trocas=[];window.rebaixas=[];
   window.fornecedores=[];window.nextId=1;window.trocaNextId=1;window.histNextId=1;
   window._prodPage=0;
-  window.USERS=[{usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#EA580C',master:true}];
+  window.USERS=[{usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true}];
   try{
     ['pc_products','pc_categories','pc_locations','pc_historico',
      'pc_trocas','pc_rebaixas','pc_fornecedores','pc_nextId','pc_users']
@@ -6548,7 +6547,7 @@ function setFeedbackNPS(n){
     var el=document.getElementById('nps-'+i);
     if(!el) continue;
     if(i===n){
-      var col=n<=6?'#EF4444':n<=8?'#CA8A04':'#16A34A';
+      var col=n<=6?'#DC2626':n<=8?'#B45309':'#16A34A';
       el.style.background=col;el.style.borderColor=col;el.style.color='#fff';
     } else {
       el.style.background='#fff';el.style.borderColor='#E2E8F0';el.style.color='#475569';
@@ -6675,7 +6674,7 @@ function confirmarTrocarSenha(){
     return u;
   });
   if(!updated) USERS.push({usuario:currentUser.usuario,senha:nova,nome:currentUser.nome,
-    perfil:currentUser.perfil||'dono',avatar:currentUser.avatar||'👑',cor:currentUser.cor||'#EA580C',
+    perfil:currentUser.perfil||'dono',avatar:currentUser.avatar||'👑',cor:currentUser.cor||'#B45309',
     codigo:window._clienteCodigo||'',primeiroAcesso:false});
   saveData();
   if(window._fb&&window._fbReady){
@@ -6707,7 +6706,7 @@ function admRedefinirSenha(id){
   if(window._fb&&window._fbReady) window._fb.saveAdmCliente(cl).catch(function(){});
   var login=cl.email||cl.loginGerado||('dono_'+cl.codigo.toLowerCase());
   var userRecord={usuario:login,senha:nova,nome:cl.responsavel||cl.nome,
-    perfil:'dono',avatar:'👑',cor:'#EA580C',codigo:cl.codigo,primeiroAcesso:true};
+    perfil:'dono',avatar:'👑',cor:'#B45309',codigo:cl.codigo,primeiroAcesso:true};
   var found=false;
   USERS=USERS.map(function(u){if(u.usuario===login){u.senha=nova;u.primeiroAcesso=true;found=true;} return u;});
   if(!found) USERS.push(userRecord);
@@ -6733,11 +6732,11 @@ function admRedefinirSenha(id){
 
 // ── Dados padrão para novos clientes ─────────────────────────────────────────
 var DEFAULT_CATEGORIES = [
-  {id:1, icon:'🥛', name:'Laticínios',    color:'#3B82F6'},
-  {id:2, icon:'🥩', name:'Carnes',        color:'#EF4444'},
+  {id:1, icon:'🥛', name:'Laticínios',    color:'#334155'},
+  {id:2, icon:'🥩', name:'Carnes',        color:'#DC2626'},
   {id:3, icon:'🍞', name:'Padaria',       color:'#F59E0B'},
-  {id:4, icon:'🥦', name:'Hortifruti',    color:'#22C55E'},
-  {id:5, icon:'🧴', name:'Limpeza',       color:'#8B5CF6'},
+  {id:4, icon:'🥦', name:'Hortifruti',    color:'#16A34A'},
+  {id:5, icon:'🧴', name:'Limpeza',       color:'#475569'},
   {id:6, icon:'🛒', name:'Mercearia',     color:'#64748B'},
   {id:7, icon:'🥤', name:'Bebidas',       color:'#06B6D4'},
   {id:8, icon:'🍫', name:'Doces e Salgadinhos', color:'#EC4899'},
@@ -6787,7 +6786,7 @@ function renderCatsList(){
       +'<span style="font-size:20px">'+cat.icon+'</span>'
       +'<span style="flex:1;font-size:13px;font-weight:600;color:#1E293B">'+cat.name+'</span>'
       +'<span style="width:14px;height:14px;border-radius:50%;background:'+(cat.color||'#64748B')+';display:inline-block"></span>'
-      +'<button onclick="deleteCategory('+cat.id+')" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
+      +'<button onclick="deleteCategory('+cat.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
       +'</div>';
   }).join('');
 }
@@ -6799,7 +6798,7 @@ function renderLocsList(){
   el.innerHTML=locations.map(function(loc){
     return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px">'
       +'<span style="font-size:13px;font-weight:600;color:#1E293B;flex:1">📍 '+loc.name+(loc.floor?' <span style="color:#94A3B8;font-weight:400">— '+loc.floor+'</span>':'')+'</span>'
-      +'<button onclick="deleteLocation('+loc.id+')" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
+      +'<button onclick="deleteLocation('+loc.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
       +'</div>';
   }).join('');
 }
@@ -6811,7 +6810,7 @@ function renderFornsList(){
   el.innerHTML=fornecedores.map(function(f,i){
     return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px">'
       +'<span style="font-size:13px;font-weight:600;color:#1E293B;flex:1">🏭 '+f.nome+(f.wpp?' <span style="color:#94A3B8;font-weight:400">📱 '+f.wpp+'</span>':'')+'</span>'
-      +'<button onclick="deleteFornecedor('+i+')" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
+      +'<button onclick="deleteFornecedor('+i+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:14px;padding:2px 6px" title="Remover">🗑️</button>'
       +'</div>';
   }).join('');
 }
@@ -7353,7 +7352,7 @@ function salvarNovaCategoriaProd(){
   var icon=document.getElementById('f-new-cat-icon').value;
   var name=document.getElementById('f-new-cat-name').value.trim();
   if(!name){notify('Digite o nome da categoria','warning');return;}
-  var colors=['#F59E0B','#EF4444','#8B5CF6','#10B981','#3B82F6','#EC4899','#14B8A6','#F97316'];
+  var colors=['#F59E0B','#DC2626','#475569','#10B981','#334155','#EC4899','#14B8A6','#F97316'];
   var newCat={id:Date.now(),name:name,icon:icon,color:colors[categories.length%colors.length]};
   categories.push(newCat);
   populateSelects();
@@ -7408,7 +7407,7 @@ function abrirEntradaMercadoria(p){
     // Quick actions
     +'<div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">O que deseja fazer?</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">'
-    +'<button onclick="modoEntrada(&quot;receber&quot;)" class="entrada-modo-btn active" id="emodo-receber" style="padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#15803D">➕ Receber Estoque</button>'
+    +'<button onclick="modoEntrada(&quot;receber&quot;)" class="entrada-modo-btn active" id="emodo-receber" style="padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#16A34A">➕ Receber Estoque</button>'
     +'<button onclick="modoEntrada(&quot;atualizar&quot;)" class="entrada-modo-btn" id="emodo-atualizar" style="padding:12px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#475569">📅 Atualizar Validade</button>'
     +'</div>'
     // Receber fields
@@ -7440,10 +7439,10 @@ function modoEntrada(modo){
   document.getElementById('entrada-receber').style.display=modo==='receber'?'block':'none';
   document.getElementById('entrada-atualizar').style.display=modo==='atualizar'?'block':'none';
   document.getElementById('emodo-receber').style.cssText=modo==='receber'
-    ?'padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#15803D'
+    ?'padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#16A34A'
     :'padding:12px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#475569';
   document.getElementById('emodo-atualizar').style.cssText=modo==='atualizar'
-    ?'padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#15803D'
+    ?'padding:12px;background:#F0FDF4;border:2px solid #16A34A;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#16A34A'
     :'padding:12px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:11px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#475569';
 }
 
@@ -7605,7 +7604,7 @@ function handleScanContinuous(code){
     <div id="help-content"></div>
   </div>
   <div class="help-footer">
-    <button onclick="abrirFeedback()" style="width:100%;padding:10px;margin-bottom:8px;background:#4F46E5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⭐ Avaliar o VenciFácil (Beta)</button>
+    <button onclick="abrirFeedback()" style="width:100%;padding:10px;margin-bottom:8px;background:#16A34A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⭐ Avaliar o VenciFácil (Beta)</button>
     <button class="help-wpp-btn" onclick="abrirSuporteWpp()">
       📱 Falar com suporte pelo WhatsApp
     </button>
@@ -7653,8 +7652,8 @@ function handleScanContinuous(code){
       <div class="cnpj-loading" id="cnpj-loading">
         <span class="cnpj-spin">⟳</span> Buscando dados da empresa…
       </div>
-      <div id="cnpj-found" style="display:none;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:#15803D"></div>
-      <div id="cad-step1-err" style="color:#EF4444;font-size:12px;margin-top:8px;display:none"></div>
+      <div id="cnpj-found" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:#16A34A"></div>
+      <div id="cad-step1-err" style="color:#DC2626;font-size:12px;margin-top:8px;display:none"></div>
       <button onclick="cadNext(1)" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-top:16px">Continuar →</button>
       <div style="text-align:center;margin-top:14px;font-size:13px;color:#64748B">
         Já tem conta? <a href="#" onclick="fecharCadastro()" style="color:#16A34A;font-weight:600;text-decoration:none">Fazer login</a>
@@ -7710,7 +7709,7 @@ function handleScanContinuous(code){
           </select>
         </div>
       </div>
-      <div id="cad-step2-err" style="color:#EF4444;font-size:12px;margin-top:4px;display:none"></div>
+      <div id="cad-step2-err" style="color:#DC2626;font-size:12px;margin-top:4px;display:none"></div>
       <div style="display:flex;gap:10px;margin-top:16px">
         <button onclick="cadBack(2)" class="btn btn-secondary" style="flex:1;justify-content:center;padding:12px">← Voltar</button>
         <button onclick="cadNext(2)" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px">Continuar →</button>
@@ -7733,15 +7732,15 @@ function handleScanContinuous(code){
         <label>Confirmar Senha</label>
         <div style="position:relative;display:flex;align-items:center"><input type="password" id="cad-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')finalizarCadastro()" style="width:100%;padding:11px 42px 11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/><button type="button" onclick="togglePwd('cad-senha2')" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;font-size:16px;color:#94A3B8;padding:0" id="eye-cad-senha2">👁️</button></div>
       </div>
-      <div id="cad-step3-err" style="color:#EF4444;font-size:12px;margin-top:4px;display:none"></div>
-      <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:11px 14px;margin:14px 0;font-size:12.5px;color:#15803D;line-height:1.6">
+      <div id="cad-step3-err" style="color:#DC2626;font-size:12px;margin-top:4px;display:none"></div>
+      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:11px 14px;margin:14px 0;font-size:12.5px;color:#16A34A;line-height:1.6">
         ✅ <b>30 dias grátis</b> — sem precisar de cartão<br>
         ✅ Acesso completo à plataforma<br>
         ✅ Suporte pelo WhatsApp
       </div>
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding:12px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;padding:12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
         <input type="checkbox" id="cad-aceite" style="margin-top:2px;width:16px;height:16px;cursor:pointer;flex-shrink:0"/>
-        <label for="cad-aceite" style="font-size:12.5px;color:#166534;cursor:pointer;line-height:1.5">Li e aceito os <a href="/privacidade.html" target="_blank" style="color:#16A34A;font-weight:700">Termos de Uso e Política de Privacidade</a> do VenciFácil.</label>
+        <label for="cad-aceite" style="font-size:12.5px;color:#16A34A;cursor:pointer;line-height:1.5">Li e aceito os <a href="/privacidade.html" target="_blank" style="color:#16A34A;font-weight:700">Termos de Uso e Política de Privacidade</a> do VenciFácil.</label>
       </div>
       <div style="display:flex;gap:10px">
         <button onclick="cadBack(3)" class="btn btn-secondary" style="flex:1;justify-content:center;padding:12px">← Voltar</button>
@@ -7783,7 +7782,7 @@ function handleScanContinuous(code){
       <div style="position:relative;display:flex;align-items:center"><input type="password" id="adm-senha" class="adm-input" placeholder="Digite a senha ADM" onkeydown="if(event.key==='Enter')doAdmLogin()" style="width:100%;padding-right:42px"/><button type="button" onclick="togglePwd('adm-senha')" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;font-size:16px;color:#94A3B8;padding:0" id="eye-adm-senha">👁️</button></div>
     </div>
     <button onclick="doAdmLogin()" style="width:100%;padding:12px;background:#16A34A;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px">Entrar</button>
-    <div id="adm-login-err" style="color:#EF4444;font-size:12px;text-align:center;margin-top:10px;display:none">Senha incorreta.</div>
+    <div id="adm-login-err" style="color:#DC2626;font-size:12px;text-align:center;margin-top:10px;display:none">Senha incorreta.</div>
     <button onclick="fecharAdm()" style="width:100%;padding:10px;background:transparent;color:#475569;border:none;cursor:pointer;font-size:13px;margin-top:8px;font-family:inherit">← Voltar ao app</button>
   </div>
 </div>
@@ -7936,7 +7935,7 @@ function handleScanContinuous(code){
         <div style="font-size:12px;color:#94A3B8">Arquivo .xml da Nota Fiscal Eletrônica</div>
         <input type="file" id="nfe-file-input" accept=".xml" style="display:none" onchange="onNFeFileSelect(event)"/>
       </div>
-      <div id="nfe-upload-err" style="color:#EF4444;font-size:12px;margin-top:8px;display:none"></div>
+      <div id="nfe-upload-err" style="color:#DC2626;font-size:12px;margin-top:8px;display:none"></div>
     </div>
     <div id="nfe-step-review" style="display:none;flex-direction:column;flex:1;min-height:0">
       <div style="padding:14px 20px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;flex-shrink:0">
@@ -7964,7 +7963,7 @@ function handleScanContinuous(code){
     </div>
     <div style="padding:20px">
       <p style="font-size:13.5px;color:#475569;margin-bottom:16px;text-align:center">
-        Você está usando a versão <span style="background:#FEF9C3;color:#92400E;font-weight:700;padding:2px 8px;border-radius:6px">Beta</span>. 
+        Você está usando a versão <span style="background:#FEF3C7;color:#92400E;font-weight:700;padding:2px 8px;border-radius:6px">Beta</span>. 
         Sua avaliação nos ajuda a melhorar! 🙏
       </p>
 
@@ -8013,7 +8012,7 @@ function handleScanContinuous(code){
         </div>
       </div>
 
-      <div id="feedback-erro" style="color:#EF4444;font-size:12px;margin-bottom:10px;display:none"></div>
+      <div id="feedback-erro" style="color:#DC2626;font-size:12px;margin-bottom:10px;display:none"></div>
 
       <button onclick="enviarFeedback()" class="btn btn-primary"
         style="width:100%;justify-content:center;padding:12px;font-size:14px;
@@ -8035,7 +8034,7 @@ function handleScanContinuous(code){
       <div class="modal-title" id="trocar-senha-title">🔑 Trocar Senha</div>
       <button class="close-btn" onclick="fecharTrocarSenha()">✕</button>
     </div>
-    <div style="padding:4px 0 8px;font-size:13px;color:#CA8A04" id="trocar-senha-aviso"></div>
+    <div style="padding:4px 0 8px;font-size:13px;color:#B45309" id="trocar-senha-aviso"></div>
     <div class="field" style="margin-bottom:12px" id="senha-atual-wrap">
       <label>Senha Atual</label>
       <div style="position:relative;display:flex;align-items:center">
@@ -8064,7 +8063,7 @@ function handleScanContinuous(code){
           style="position:absolute;right:12px;background:none;border:none;cursor:pointer;font-size:16px;color:#94A3B8;padding:0">👁️</button>
       </div>
     </div>
-    <div id="ts-erro" style="color:#EF4444;font-size:12px;margin-bottom:12px;display:none"></div>
+    <div id="ts-erro" style="color:#DC2626;font-size:12px;margin-bottom:12px;display:none"></div>
     <button onclick="confirmarTrocarSenha()" class="btn btn-primary"
       style="width:100%;justify-content:center;padding:12px;font-size:14px">
       ✅ Salvar nova senha
