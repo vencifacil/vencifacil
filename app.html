@@ -5618,14 +5618,176 @@ function imprimirCartazOferta(rebaixaId){
 function encerrarRebaixa(rebaixaId){
   var rb=rebaixas.find(function(x){return x.id===rebaixaId;});
   if(!rb) return;
-  rb.status='encerrada';
+  window._encRbAtual=rb;
   var p=products.find(function(x){return x.id===rb.prodId;});
-  if(p){p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;window._lastLocalSave=Date.now();fbSaveProduct(p);}
+  var estoque=p?p.quantity:(rb.qty||0);
+
+  var html='<div class="overlay open" id="modal-encerrar-rb" style="z-index:920">'
+    +'<div class="modal" style="width:440px">'
+    +'<div class="modal-hdr"><div><div class="modal-title">✅ Encerrar Rebaixa</div>'
+    +'<div style="font-size:11.5px;color:#94A3B8;margin-top:2px">'+rb.prodName+'</div></div>'
+    +'<button class="close-btn" onclick="fecharEncerrarRb()">✕</button></div>'
+
+    +'<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:11px;padding:13px 15px;margin-bottom:16px">'
+    +'<div style="font-size:12px;color:#64748B;margin-bottom:4px">Estoque na rebaixa</div>'
+    +'<div style="font-size:22px;font-weight:800;color:#1E293B">'+estoque+' unidades</div>'
+    +'</div>'
+
+    +'<div class="field" style="margin-bottom:16px">'
+    +'<label>Quantas unidades sobraram (não venderam)?</label>'
+    +'<input type="number" id="enc-sobra" value="0" min="0" max="'+estoque+'" oninput="encAtualizaSobra('+estoque+')" '
+    +'style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:16px;font-weight:700;outline:none;font-family:inherit"/>'
+    +'<div style="font-size:12px;color:#16A34A;margin-top:6px" id="enc-vendido-info">✅ Vendeu todas as '+estoque+' unidades!</div>'
+    +'</div>'
+
+    +'<div id="enc-destino" style="display:none;margin-bottom:16px">'
+    +'<label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:8px">O que fazer com as unidades restantes?</label>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<button type="button" id="enc-opt-troca" onclick="encEscolheDestino(&quot;troca&quot;)" '
+    +'style="padding:14px;border:2px solid #E2E8F0;border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s">'
+    +'<div style="font-size:24px;margin-bottom:4px">🔄</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#1E293B">Troca</div>'
+    +'<div style="font-size:11px;color:#94A3B8;margin-top:2px">Devolver ao fornecedor</div></button>'
+    +'<button type="button" id="enc-opt-perda" onclick="encEscolheDestino(&quot;perda&quot;)" '
+    +'style="padding:14px;border:2px solid #E2E8F0;border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s">'
+    +'<div style="font-size:24px;margin-bottom:4px">🗑️</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#1E293B">Perda</div>'
+    +'<div style="font-size:11px;color:#94A3B8;margin-top:2px">Descarte/vencido</div></button>'
+    +'</div></div>'
+
+    +'<input type="hidden" id="enc-destino-val" value=""/>'
+
+    +'<div id="enc-perda-info" style="display:none;background:#FEE2E2;border:1px solid #FECACA;border-radius:10px;padding:12px;margin-bottom:16px">'
+    +'<div style="font-size:12px;color:#991B1B;font-weight:600">Perda estimada</div>'
+    +'<div id="enc-perda-valor" style="font-size:20px;font-weight:900;color:#DC2626">R$ 0,00</div>'
+    +'</div>'
+
+    +'<div style="display:flex;gap:10px">'
+    +'<button class="btn btn-primary" id="enc-confirmar" onclick="confirmarEncerramento('+rebaixaId+')" style="flex:1;justify-content:center">✅ Confirmar</button>'
+    +'<button class="btn btn-secondary" onclick="fecharEncerrarRb()" style="flex:1;justify-content:center">Cancelar</button>'
+    +'</div></div></div>';
+
+  var d=document.createElement('div');d.innerHTML=html;
+  document.body.appendChild(d.firstElementChild);
+}
+
+function fecharEncerrarRb(){
+  var m=document.getElementById('modal-encerrar-rb');
+  if(m) m.remove();
+}
+
+function encAtualizaSobra(estoque){
+  var sobra=+document.getElementById('enc-sobra').value||0;
+  if(sobra>estoque){ sobra=estoque; document.getElementById('enc-sobra').value=estoque; }
+  var vendido=estoque-sobra;
+  var info=document.getElementById('enc-vendido-info');
+  var destino=document.getElementById('enc-destino');
+
+  if(sobra===0){
+    info.innerHTML='✅ Vendeu todas as '+estoque+' unidades!';
+    info.style.color='#16A34A';
+    destino.style.display='none';
+    document.getElementById('enc-destino-val').value='';
+    document.getElementById('enc-perda-info').style.display='none';
+  } else {
+    info.innerHTML='Vendeu '+vendido+' · Sobraram '+sobra+' unidades';
+    info.style.color='#B45309';
+    destino.style.display='block';
+  }
+}
+
+function encEscolheDestino(tipo){
+  document.getElementById('enc-destino-val').value=tipo;
+  var bTroca=document.getElementById('enc-opt-troca');
+  var bPerda=document.getElementById('enc-opt-perda');
+  bTroca.style.borderColor = tipo==='troca'?'#16A34A':'#E2E8F0';
+  bTroca.style.background   = tipo==='troca'?'#F0FDF4':'#fff';
+  bPerda.style.borderColor = tipo==='perda'?'#DC2626':'#E2E8F0';
+  bPerda.style.background   = tipo==='perda'?'#FEE2E2':'#fff';
+
+  var perdaInfo=document.getElementById('enc-perda-info');
+  if(tipo==='perda'){
+    var rb=window._encRbAtual;
+    var sobra=+document.getElementById('enc-sobra').value||0;
+    var valorUnit=(rb&&rb.precoOriginal)||0;
+    var perda=sobra*valorUnit;
+    document.getElementById('enc-perda-valor').textContent='R$ '+perda.toFixed(2).replace('.',',');
+    perdaInfo.style.display='block';
+  } else {
+    perdaInfo.style.display='none';
+  }
+}
+
+function confirmarEncerramento(rebaixaId){
+  var rb=rebaixas.find(function(x){return x.id===rebaixaId;});
+  if(!rb) return;
+  var p=products.find(function(x){return x.id===rb.prodId;});
+  var estoque=p?p.quantity:(rb.qty||0);
+  var sobra=+document.getElementById('enc-sobra').value||0;
+  var vendido=estoque-sobra;
+  var destino=document.getElementById('enc-destino-val').value;
+
+  if(sobra>0 && !destino){
+    notify('Escolha o que fazer com as unidades restantes','warning');
+    return;
+  }
+
+  // Encerra a rebaixa
+  rb.status='encerrada';
+  rb.vendido=vendido;
+  rb.sobra=sobra;
+  rb.encerradaEm=new Date().toISOString();
+
   if(window._fb&&window._fbReady) window._fb.saveRebaixa(rb).catch(function(){});
-  saveData();notify('Rebaixa encerrada — preço restaurado');
-  updateBadge();renderRebaixas();
-  if(currentTab==='products') renderProducts();
-  if(currentTab==='alerts')   renderAlerts();
+
+  if(sobra===0){
+    // Vendeu tudo — restaura preço, produto volta ao normal
+    if(p){p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;fbSaveProduct(p);}
+    notify('🎉 Rebaixa encerrada — vendeu todas as '+estoque+' unidades!');
+  } else if(destino==='troca'){
+    // Sobrou e vai para troca
+    if(p){
+      p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;
+      p.quantity=sobra; // ajusta estoque para o que sobrou
+      p.emTroca=true;
+      fbSaveProduct(p);
+    }
+    var entradaTroca={
+      id:trocaNextId++,prodId:rb.prodId,prodName:rb.prodName,barcode:rb.barcode||'',
+      lote:(p&&p.lote)||'',fornecedor:(p&&p.fornecedor)||'Sem fornecedor',
+      qty:sobra,motivo:'Sobra de rebaixa ('+vendido+' vendidas, '+sobra+' restantes)',
+      status:'pendente',data:new Date().toISOString(),expiry:rb.expiry,
+      preco:rb.precoOriginal||0,user:currentUser?currentUser.nome:'Sistema',
+    };
+    trocas.unshift(entradaTroca);
+    if(window._fb&&window._fbReady){
+      window._fb.saveTroca(entradaTroca).catch(function(){});
+      window._fb.saveMeta('trocaNextId',trocaNextId).catch(function(){});
+    }
+    notify('🔄 '+vendido+' vendidas · '+sobra+' enviadas para Troca');
+  } else if(destino==='perda'){
+    // Sobrou e é perda
+    var valorUnit=rb.precoOriginal||0;
+    var perda=sobra*valorUnit;
+    if(p){
+      registrarBaixa(p, sobra, 'Perda após rebaixa');
+      p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;
+      // remove o produto ou zera estoque
+      p.quantity=Math.max(0,p.quantity-sobra);
+      fbSaveProduct(p);
+    }
+    notify('🗑️ '+vendido+' vendidas · '+sobra+' registradas como perda (R$ '+perda.toFixed(2).replace('.',',')+')');
+  }
+
+  window._lastLocalSave=Date.now();
+  saveData();
+  fecharEncerrarRb();
+  updateBadge();
+  renderRebaixas();
+  if(currentTab==='products')  renderProducts();
+  if(currentTab==='alerts')    renderAlerts();
+  if(currentTab==='trocas')    renderTrocas();
+  if(currentTab==='dashboard') renderDashboard();
 }
 
 function renderRebaixas(){
