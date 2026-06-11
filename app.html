@@ -1453,6 +1453,7 @@ if('caches' in window){
         }));
         u.push(onSnapshot(col('rebaixas'),snap=>{
           window.rebaixas=snap.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+          console.log('[SNAPSHOT REBAIXAS] Recebido do Firebase:', window.rebaixas.length, 'rebaixas');
           if(window.updateBadge) window.updateBadge();
           const t=window.currentTab;
           if(t==='rebaixas' &&window.renderRebaixas) window.renderRebaixas();
@@ -5447,10 +5448,19 @@ function confirmarRebaixa(prodId){
     user:currentUser?currentUser.nome:'Sistema',status:'ativa',
   };
   rebaixas.unshift(entrada);
+  console.log('[REBAIXA] Criada:', entrada.id, '| Total rebaixas:', rebaixas.length, '| Ativas:', rebaixas.filter(function(r){return r.status==='ativa';}).length);
   p.precoVenda=novo;p.emRebaixa=true;p.rebaixaId=entrada.id;
   window._lastLocalSave=Date.now();
   fbSaveProduct(p);saveData();
-  if(window._fb&&window._fbReady) rebaixas.forEach(function(r){window._fb.saveRebaixa(r).catch(function(){});});
+  if(window._fb&&window._fbReady){
+    window._fb.saveRebaixa(entrada).then(function(){
+      console.log('[REBAIXA] Salva no Firebase:', entrada.id);
+    }).catch(function(e){
+      console.error('[REBAIXA] ERRO ao salvar:', e);
+    });
+  } else {
+    console.warn('[REBAIXA] Firebase não disponível — salvo só local');
+  }
   fecharModalRebaixa();
   notify('💰 Rebaixa aplicada: '+desc+'% em '+p.name);
   updateBadge();
@@ -5622,6 +5632,7 @@ function renderRebaixas(){
   var el=document.getElementById('rebaixas-body');
   if(!el) return;
   var ativas=rebaixas.filter(function(r){return r.status==='ativa';});
+  console.log('[RENDER REBAIXAS] Total:', rebaixas.length, '| Ativas:', ativas.length);
   var encerradas=rebaixas.filter(function(r){return r.status!=='ativa';});
   // ── Navigation header ────────────────────────────────────────────────
   var pendTrocas=trocas.filter(function(t){return t.status==='pendente'||t.status==='enviado';}).length;
