@@ -1444,12 +1444,21 @@ if('caches' in window){
         }));
         u.push(onSnapshot(col('trocas'),snap=>{
           window.trocas=snap.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
-          if(window.currentTab==='trocas'&&window.renderTrocas) window.renderTrocas();
+          if(window.updateBadge) window.updateBadge();
+          const t=window.currentTab;
+          if(t==='trocas'  &&window.renderTrocas)   window.renderTrocas();
+          if(t==='products'&&window.renderProducts) window.renderProducts();
+          if(t==='alerts'  &&window.renderAlerts)   window.renderAlerts();
+          if(t==='dashboard'&&window.renderDashboard) window.renderDashboard();
         }));
         u.push(onSnapshot(col('rebaixas'),snap=>{
           window.rebaixas=snap.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
-          if(window.currentTab==='rebaixas'&&window.renderRebaixas) window.renderRebaixas();
           if(window.updateBadge) window.updateBadge();
+          const t=window.currentTab;
+          if(t==='rebaixas' &&window.renderRebaixas) window.renderRebaixas();
+          if(t==='products' &&window.renderProducts) window.renderProducts();
+          if(t==='alerts'   &&window.renderAlerts)   window.renderAlerts();
+          if(t==='dashboard'&&window.renderDashboard) window.renderDashboard();
         }));
         u.push(onSnapshot(col('categories'),snap=>{
           if(snap.docs.length){window.categories=snap.docs.map(d=>d.data()); if(window.populateSelects) window.populateSelects();}
@@ -2459,12 +2468,10 @@ function renderDashboard(){
   var activeProd=products.filter(function(p){return !p.emTroca&&!p.emRebaixa;}).length;
 
   document.getElementById('stat-grid').innerHTML=[
-    {l:'Produtos Ativos',  v:activeProd,    c:'c-blue',  i:'📦', action:"setTab('products')"},
-    {l:'Vencidos',         v:exp,           c:'c-red',   i:'❌', action:"setTab('alerts')"},
-    {l:'Críticos ≤3d',     v:crit+tod,      c:'c-amber', i:'⚠️', action:"setTab('alerts')"},
-    {l:'Atenção ≤7d',      v:warn,          c:'c-orange',i:'🔶', action:"setTab('alerts')"},
-    {l:'Em Troca',         v:trocasPend+trocasEnv, c:'c-indigo', i:'🔄', action:"setTab(&quot;trocas&quot;)"},
-    {l:'Em Rebaixa',       v:rebaixasAt,    c:'c-green', i:'💰', action:"setTab(&quot;rebaixas&quot;)"},
+    {l:'Produtos',     v:activeProd,           c:'c-green', i:'📦', action:"setTab('products')"},
+    {l:'Vencidos',     v:exp+tod,              c:'c-red',   i:'❌', action:"setTab('alerts')"},
+    {l:'Vencendo',     v:crit+warn,            c:'c-amber', i:'⚠️', action:"setTab('alerts')"},
+    {l:'Em Troca',     v:trocasPend+trocasEnv, c:'c-slate', i:'🔄', action:"setTab(&quot;trocas&quot;)"},
   ].map(function(d){
     return '<div class="stat-card '+d.c+'" onclick="'+d.action+'" role="button" tabindex="0">'      +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'      +'<div class="stat-card-icon">'+d.i+'</div>'      +'<span style="font-size:10px;color:#CBD5E1;margin-top:2px">→</span>'      +'</div>'      +'<div class="stat-lbl">'+d.l+'</div>'      +'<div class="stat-val">'+d.v+'</div></div>';
   }).join('');
@@ -2563,20 +2570,16 @@ function renderProducts(){
       var s=getStatus(p.expiry);var cat=getCat(p.category);var loc=getLoc(p.location);
       var sl=s.badge==='expired'?'Vencido':s.badge==='today'?'Hoje!':s.label;
       return '<tr>'
-        +'<td data-label="Produto"><div style="font-weight:700;color:#1E293B;font-size:13px">'+p.name+'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:3px">'
-        +'<span class="cat-pill" style="background:'+cat.color+'18;color:'+cat.color+';font-size:11px">'+cat.icon+' '+cat.name+'</span>'
-        +'<span style="font-size:11px;color:#64748B">📍 '+loc.name+'</span>'
-        +(p.lote?'<span style="font-size:11px;color:#94A3B8">'+p.lote+'</span>':'')
-        +'</div></td>'
+        +'<td data-label="Produto"><div style="font-weight:700;color:#1E293B;font-size:13.5px">'+p.name+'</div>'
+        +'<div style="font-size:11.5px;color:#94A3B8;margin-top:2px">'+cat.icon+' '+cat.name+' · 📍 '+loc.name+(p.lote?' · '+p.lote:'')+'</div></td>'
         +'<td data-label="Validade" style="color:#475569;font-size:13px;white-space:nowrap">'+fmtDate(p.expiry)+'</td>'
         +'<td data-label="Status"><span class="pill '+s.cls+'">'+sl+'</span></td>'
         +'<td data-label="Qtd" style="font-weight:700;font-size:14px;color:'+(p.quantity<=p.minStock?'#B45309':'#1E293B')+';text-align:center">'+p.quantity+'</td>'
         +'<td style="text-align:right"><div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:nowrap;align-items:center">'
-        +'<button onclick="imprimirEtiqueta('+p.id+')" class="btn btn-secondary btn-sm" title="Imprimir etiqueta">🏷️</button>'+'<button onclick="openEditProd('+p.id+')" class="btn btn-secondary btn-sm">✏️</button>'
-        +'<button onclick="abrirModalTroca('+p.id+')" class="btn btn-secondary btn-sm" style="background:#F8FAFC;color:#334155;border-color:#E2E8F0" title="Solicitar Troca">🔄</button>'
-        +'<button onclick="abrirModalRebaixa('+p.id+')" class="btn btn-secondary btn-sm" style="background:#FEFCE8;color:#B45309;border-color:#FDE68A" title="Rebaixar preço">💰</button>'
-        +(canDo('deletar')?'<button onclick="delProduct('+p.id+')" class="btn btn-danger btn-sm">🗑️</button>':'')+'</div></td></tr>';
+        +'<button onclick="abrirModalTroca('+p.id+')" class="btn btn-secondary btn-sm" title="Solicitar Troca">🔄</button>'
+        +'<button onclick="abrirModalRebaixa('+p.id+')" class="btn btn-secondary btn-sm" title="Rebaixar preço">💰</button>'
+        +'<button onclick="openEditProd('+p.id+')" class="btn btn-secondary btn-sm" title="Editar">✏️</button>'
+        +(canDo('deletar')?'<button onclick="delProduct('+p.id+')" class="btn btn-secondary btn-sm" title="Excluir" style="color:#DC2626">🗑️</button>':'')+'</div></td></tr>';
     }).join('');
     var pagEl=document.getElementById('prod-pagination');
     if(pagEl){
