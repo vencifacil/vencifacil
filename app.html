@@ -1391,6 +1391,10 @@ if('caches' in window){
       saveAdmCliente:   async(cl)  => setDoc(doc(db,'admin_clientes',String(cl.id)),cl),
       deleteAdmCliente: async(id)  => deleteDoc(doc(db,'admin_clientes',String(id))),
       saveFeedback: async(f) => setDoc(doc(db,'feedbacks',String(f.id)),f),
+      saveConsumoItem: async(it) => setDoc(dref('consumo_itens',it.id),it),
+      deleteConsumoItem: async(id) => deleteDoc(dref('consumo_itens',String(id))),
+      saveConsumoRetirada: async(r) => setDoc(dref('consumo_ret',r.id),r),
+      deleteConsumoRetirada: async(id) => deleteDoc(dref('consumo_ret',String(id))),
       getAdmClientes:   async()    => { try{ const s=await getDocs(collection(db,'admin_clientes')); return s.docs.map(d=>d.data()); }catch(e){ return []; } },
 
       loadAll: async() => {
@@ -1405,6 +1409,12 @@ if('caches' in window){
         window.historico  =hS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
         window.trocas     =tS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
         window.rebaixas   =rbS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+        try {
+          var ciS=await safeGet(col('consumo_itens'));
+          var crS=await safeGet(col('consumo_ret'));
+          window.consumoItens=ciS.docs.map(d=>d.data());
+          window.consumoRetiradas=crS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+        } catch(e){ window.consumoItens=[]; window.consumoRetiradas=[]; }
         if(fS.docs.length) window.fornecedores=fS.docs.map(d=>d.data());
         var lu=uS.docs.map(d=>d.data()).filter(u=>!u.master);
         // Keep only users belonging to current namespace
@@ -1416,6 +1426,8 @@ if('caches' in window){
         const ni=mS.docs.find(d=>d.id==='nextId');      if(ni) window.nextId=ni.data().value;
         const nt=mS.docs.find(d=>d.id==='trocaNextId'); if(nt) window.trocaNextId=nt.data().value;
         const nh=mS.docs.find(d=>d.id==='histNextId');  if(nh) window.histNextId=nh.data().value;
+        const cin=mS.docs.find(d=>d.id==='consumoItemNextId'); if(cin) window.consumoItemNextId=cin.data().value;
+        const crn=mS.docs.find(d=>d.id==='consumoRetNextId');  if(crn) window.consumoRetNextId=crn.data().value;
       },
 
       setupListeners: ()=>{
@@ -1995,6 +2007,9 @@ if('caches' in window){
     <button class="nav-item" id="nav-rebaixas" onclick="setTab(&quot;rebaixas&quot;)">
       <div class="nav-icon-wrap"><div class="nav-icon">💰</div><span class="nav-badge" id="rebaixas-badge" style="display:none">0</span></div><span class="nav-label">Rebaixas</span>
     </button>
+    <button class="nav-item" id="nav-consumo" onclick="setTab(&quot;consumo&quot;)">
+      <div class="nav-icon-wrap"><div class="nav-icon">🧹</div></div><span class="nav-label">Uso e Consumo</span>
+    </button>
     <div class="sidebar-div"></div>
     <div class="sidebar-bot"><button onclick="abrirAdmTrigger()" class="adm-trigger-btn" style="background:none;border:none;width:100%;padding:6px;cursor:pointer;opacity:.2;font-size:10px;color:#94A3B8;text-align:center">v2.0</button>
     <div class="nav-group" style="font-size:9.5px">Sistema</div>
@@ -2165,6 +2180,9 @@ if('caches' in window){
       <div class="tab-content" id="tab-rebaixas">
         <div id="rebaixas-body"></div>
       </div>
+      <div class="tab-content" id="tab-consumo">
+        <div id="consumo-body"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2221,7 +2239,17 @@ function getAlerts(){
   return products.filter(function(p){return['expired','today','critical'].includes(getStatus(p.expiry).badge);})
     .sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
 }
+// ── Recálculo central de flags emTroca/emRebaixa (fonte da verdade) ──────────
+function recalcFlags(){
+  (window.products||[]).forEach(function(p){
+    p.emTroca   = (window.trocas||[]).some(function(t){return t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado');});
+    p.emRebaixa = (window.rebaixas||[]).some(function(r){return r.prodId===p.id&&r.status==='ativa';});
+  });
+}
+
+
 function getAlertsAll(){
+  recalcFlags();
   return products.filter(function(p){
     return !p.emTroca && !p.emRebaixa
       && ['expired','today','critical','warning','soon'].includes(getStatus(p.expiry).badge);
@@ -2239,7 +2267,7 @@ function notify(msg,type){
   clearTimeout(notifTimer);notifTimer=setTimeout(function(){el.style.display='none';},3000);
 }
 
-var tabTitles={dashboard:'Dashboard',products:'Produtos',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço'};
+var tabTitles={dashboard:'Dashboard',products:'Produtos',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço',consumo:'Uso e Consumo Interno'};
 function setTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
@@ -2257,6 +2285,7 @@ function setTab(tab){
   if(tab==='mensal')renderRelatorioMensal();
   if(tab==='trocas')renderTrocas();
   if(tab==='rebaixas')renderRebaixas();
+  if(tab==='consumo')renderConsumo();
   if(window.checkAIBadge) checkAIBadge();
 }
 
@@ -2413,11 +2442,7 @@ function renderAcaoHoje(){
   var el=document.getElementById('acao-hoje');
   if(!el) return;
 
-  // Recalc flags
-  products.forEach(function(p){
-    p.emTroca   = (window.trocas||[]).some(function(t){return t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado');});
-    p.emRebaixa = (window.rebaixas||[]).some(function(r){return r.prodId===p.id&&r.status==='ativa';});
-  });
+  recalcFlags();
 
   // Get urgent products (vencidos, hoje, criticos) not in troca/rebaixa
   var urgentes=products.filter(function(p){
@@ -2673,11 +2698,7 @@ function renderProducts(){
   var fc=+document.getElementById('filter-cat').value;
   var fs=document.getElementById('filter-status').value;
   var fl=+document.getElementById('filter-loc').value;
-  // Recalculate flags every render — source of truth is trocas/rebaixas arrays
-  products.forEach(function(p){
-    p.emTroca   = (window.trocas||[]).some(function(t){return t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado');});
-    p.emRebaixa = (window.rebaixas||[]).some(function(r){return r.prodId===p.id&&r.status==='ativa';});
-  });
+  recalcFlags();
   var list=products.filter(function(p){
     var s=getStatus(p.expiry);
     if(p.emTroca)   return false;
@@ -2730,11 +2751,7 @@ function renderProducts(){
 }
 
 function renderAlerts(){
-  // Recalculate flags — source of truth is trocas/rebaixas arrays
-  products.forEach(function(p){
-    p.emTroca   = (window.trocas||[]).some(function(t){return t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado');});
-    p.emRebaixa = (window.rebaixas||[]).some(function(r){return r.prodId===p.id&&r.status==='ativa';});
-  });
+  recalcFlags();
   var floc=+(document.getElementById('alert-filter-loc')||{value:0}).value||0;
   var al=getAlertsAll().filter(function(p){return !floc||p.location===floc;});
   var el=document.getElementById('alerts-body');
@@ -3856,11 +3873,14 @@ function doLogout(){
 // ── Histórico de baixas ───────────────────────────────────────────────────────
 function registrarBaixa(produto, qtd, motivo){
   var s=getStatus(produto.expiry);
+  // Aceita tanto produto (name) quanto troca/rebaixa (prodName)
+  var nome=produto.name||produto.prodName||'Produto';
+  var precoUnit=produto.preco||produto.precoOriginal||produto.custoUnit||0;
   var entrada={
     id: histNextId++,
-    prodId:   produto.id,
-    prodName: produto.name,
-    barcode:  produto.barcode,
+    prodId:   produto.prodId||produto.id,
+    prodName: nome,
+    barcode:  produto.barcode||'',
     lote:     produto.lote||'',
     fornecedor: produto.fornecedor||'',
     acao:     motivo,
@@ -3870,11 +3890,14 @@ function registrarBaixa(produto, qtd, motivo){
     data:     new Date().toISOString(),
     expiry:   produto.expiry,
     status:   s.badge,
-    perda:    (produto.preco||0)*qtd,
+    perda:    precoUnit*qtd,
   };
   historico.unshift(entrada);
   saveData();
-  if(window._fb&&window._fbReady) window._fb.saveMeta('histNextId',histNextId).catch(function(){});
+  if(window._fb&&window._fbReady){
+    window._fb.saveHistorico(entrada).catch(function(){});
+    window._fb.saveMeta('histNextId',histNextId).catch(function(){});
+  }
   return entrada;
 }
 
@@ -4485,8 +4508,7 @@ function atualizarStatusTroca(id, novoStatus){
         p.emTroca=false; // restore if partial
         if(window._fb&&window._fbReady) window._fb.saveProduct(p).catch(function(){});
       }
-      var h=registrarBaixa(t, t.qty, 'Troca com fornecedor: '+t.fornecedor);
-      if(window._fb&&window._fbReady) window._fb.saveHistorico(h).catch(function(){});
+      registrarBaixa(t, t.qty, 'Troca com fornecedor: '+t.fornecedor);
     }
     notify('Troca concluída! Estoque atualizado.');
 
@@ -5331,6 +5353,7 @@ function loadData(){
     var pn=localStorage.getItem('pc_nextId');     if(pn) nextId=+pn;
     var ph=localStorage.getItem('pc_historico');  if(ph) historico=JSON.parse(ph);
     var pt=localStorage.getItem('pc_trocas');     if(pt) trocas=JSON.parse(pt);
+    try{var pci=localStorage.getItem('pc_consumo_itens');if(pci)consumoItens=JSON.parse(pci);var pcr=localStorage.getItem('pc_consumo_ret');if(pcr)consumoRetiradas=JSON.parse(pcr);}catch(e){}
     var pu=localStorage.getItem('pc_users');
     if(pu){
       var loadedUsers=JSON.parse(pu);
@@ -6786,7 +6809,7 @@ function confirmarImportNFe(){
 
 function clearAllData(){
   window.products=[];window.categories=[];window.locations=[];
-  window.historico=[];window.trocas=[];window.rebaixas=[];
+  window.historico=[];window.trocas=[];window.rebaixas=[];window.consumoItens=[];window.consumoRetiradas=[];
   window.fornecedores=[];window.nextId=1;window.trocaNextId=1;window.histNextId=1;
   window._prodPage=0;
   window.USERS=[{usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true}];
@@ -7238,6 +7261,293 @@ function checkOnboarding(){
       try{ localStorage.setItem('vf_onboarding_done','1'); }catch(e){}
     }, 1500);
   }catch(e){}
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// MÓDULO USO E CONSUMO INTERNO
+// ══════════════════════════════════════════════════════════════════════
+var consumoItens=[];      // cadastro de itens: {id,nome,unidade,custoUnit,categoria}
+var consumoRetiradas=[];  // retiradas: {id,itemId,itemNome,qtd,custoUnit,finalidade,user,data}
+var consumoItemNextId=1;
+var consumoRetNextId=1;
+
+var CONSUMO_FINALIDADES=['Limpeza','Produção Padaria','Açougue','Cozinha','Manutenção','Escritório','Outros'];
+var CONSUMO_UNIDADES=['g','kg','ml','L','un','cx','pct','rolo'];
+
+function renderConsumo(){
+  var el=document.getElementById('consumo-body');
+  if(!el) return;
+
+  // Semana atual (segunda a domingo)
+  var hoje=new Date();
+  var diaSemana=hoje.getDay();
+  var diffSeg=diaSemana===0?-6:1-diaSemana;
+  var inicioSemana=new Date(hoje); inicioSemana.setDate(hoje.getDate()+diffSeg); inicioSemana.setHours(0,0,0,0);
+  var fimSemana=new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate()+6); fimSemana.setHours(23,59,59,999);
+
+  if(window._consumoSemana===undefined) window._consumoSemana=0;
+  // Aplica offset de semana
+  inicioSemana.setDate(inicioSemana.getDate()+window._consumoSemana*7);
+  fimSemana.setDate(fimSemana.getDate()+window._consumoSemana*7);
+
+  // Filtra retiradas da semana
+  var retSemana=consumoRetiradas.filter(function(r){
+    var d=new Date(r.data);
+    return d>=inicioSemana && d<=fimSemana;
+  });
+
+  // Agrupa por item
+  var agrupado={};
+  retSemana.forEach(function(r){
+    if(!agrupado[r.itemId]){
+      agrupado[r.itemId]={nome:r.itemNome,unidade:r.unidade||'un',qtdTotal:0,custoTotal:0,retiradas:[]};
+    }
+    agrupado[r.itemId].qtdTotal+=r.qtd;
+    agrupado[r.itemId].custoTotal+=r.qtd*r.custoUnit;
+    agrupado[r.itemId].retiradas.push(r);
+  });
+
+  var totalGeral=Object.keys(agrupado).reduce(function(a,k){return a+agrupado[k].custoTotal;},0);
+
+  var semanaLabel=inicioSemana.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' a '+fimSemana.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+
+  var html='';
+
+  // Header com ações
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
+    +'<button onclick="abrirRetirada()" class="btn btn-primary" style="font-size:13px;padding:9px 16px">➕ Registrar Retirada</button>'
+    +'<button onclick="abrirCadastroItem()" class="btn btn-secondary" style="font-size:13px;padding:9px 16px">📦 Cadastrar Item</button>'
+    +'</div>';
+
+  // Navegação de semana
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px 16px;margin-bottom:16px">'
+    +'<button onclick="window._consumoSemana--;renderConsumo()" class="btn btn-secondary btn-sm">←</button>'
+    +'<div style="text-align:center"><div style="font-size:11px;color:#94A3B8">Semana</div>'
+    +'<div style="font-size:14px;font-weight:700;color:#1E293B">'+semanaLabel+(window._consumoSemana===0?' (atual)':'')+'</div></div>'
+    +'<button onclick="if(window._consumoSemana<0){window._consumoSemana++;renderConsumo()}" class="btn btn-secondary btn-sm" '+(window._consumoSemana>=0?'disabled style="opacity:.4"':'')+'>→</button>'
+    +'</div>';
+
+  // Total da semana
+  html+='<div style="background:#16A34A;border-radius:14px;padding:18px;margin-bottom:16px;color:#fff">'
+    +'<div style="font-size:12px;opacity:.85">Custo total de uso e consumo na semana</div>'
+    +'<div style="font-size:32px;font-weight:800;font-family:Space Grotesk,sans-serif">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
+    +'<div style="font-size:12px;opacity:.85">'+Object.keys(agrupado).length+' itens · '+retSemana.length+' retiradas</div>'
+    +'</div>';
+
+  // Lista agrupada por item
+  if(Object.keys(agrupado).length===0){
+    html+='<div class="card" style="text-align:center;padding:40px">'
+      +'<div style="font-size:44px;margin-bottom:12px">🧹</div>'
+      +'<div style="font-size:15px;font-weight:700;color:#64748B;margin-bottom:6px">Nenhuma retirada nesta semana</div>'
+      +'<div style="font-size:13px;color:#94A3B8">Registre o que foi usado internamente (limpeza, padaria, etc).</div>'
+      +'</div>';
+  } else {
+    html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Consumo por Item</div>';
+    var ordenado=Object.keys(agrupado).sort(function(a,b){return agrupado[b].custoTotal-agrupado[a].custoTotal;});
+    ordenado.forEach(function(itemId){
+      var g=agrupado[itemId];
+      html+='<div class="card" style="margin-bottom:10px;padding:14px 16px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+g.nome+'</div>'
+        +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+g.retiradas.length+' retirada'+(g.retiradas.length!==1?'s':'')+' na semana</div>'
+        +'</div>'
+        +'<div style="text-align:right">'
+        +'<div style="font-size:17px;font-weight:800;color:#16A34A">'+formatQtd(g.qtdTotal,g.unidade)+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:#1E293B">R$ '+g.custoTotal.toFixed(2).replace('.',',')+'</div>'
+        +'</div>'
+        +'<button onclick="toggleRetiradas('+itemId+')" class="btn btn-secondary btn-sm" style="flex-shrink:0">▼</button>'
+        +'</div>'
+        +'<div id="retiradas-'+itemId+'" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #F1F5F9">'
+        +g.retiradas.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(r){
+          var d=new Date(r.data);
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px">'
+            +'<div><span style="color:#475569">'+d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'})+'</span> '
+            +'<span style="color:#94A3B8">· '+r.finalidade+'</span> '
+            +'<span style="color:#94A3B8">· '+(r.user||'')+'</span></div>'
+            +'<div style="display:flex;align-items:center;gap:10px">'
+            +'<span style="font-weight:600;color:#1E293B">'+formatQtd(r.qtd,r.unidade)+'</span>'
+            +'<button onclick="excluirRetirada('+r.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px">🗑️</button>'
+            +'</div></div>';
+        }).join('')
+        +'</div>'
+        +'</div>';
+    });
+  }
+
+  el.innerHTML=html;
+}
+
+function formatQtd(q,u){
+  if(q===Math.floor(q)) return q+' '+u;
+  return q.toFixed(2).replace('.',',')+' '+u;
+}
+
+function toggleRetiradas(itemId){
+  var el=document.getElementById('retiradas-'+itemId);
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ── Cadastro de Item ─────────────────────────────────────────────────────────
+function abrirCadastroItem(){
+  var html='<div class="overlay open" id="modal-cad-item" style="z-index:920">'
+    +'<div class="modal" style="width:420px">'
+    +'<div class="modal-hdr"><div class="modal-title">📦 Cadastrar Item de Consumo</div>'
+    +'<button class="close-btn" onclick="fecharCadItem()">✕</button></div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Nome do Item</label>'
+    +'<input type="text" id="ci-nome" placeholder="Ex: Queijo Mussarela" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Unidade de medida</label><select id="ci-unidade" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
+    +CONSUMO_UNIDADES.map(function(u){return '<option>'+u+'</option>';}).join('')+'</select></div>'
+    +'<div style="font-size:11.5px;color:#94A3B8;margin-bottom:16px">💡 O custo será informado a cada retirada, já que os preços mudam com frequência.</div>'
+    +'<button onclick="salvarItem()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Salvar Item</button>'
+    +'<div id="ci-lista" style="margin-top:16px"></div>'
+    +'</div></div>';
+  var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d.firstElementChild);
+  renderItensCadastrados();
+}
+
+function fecharCadItem(){var m=document.getElementById('modal-cad-item');if(m)m.remove();}
+
+function renderItensCadastrados(){
+  var el=document.getElementById('ci-lista');
+  if(!el) return;
+  if(!consumoItens.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-size:12px;font-weight:700;color:#64748B;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Itens cadastrados</div>'
+    +consumoItens.map(function(it){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px">'
+        +'<span style="flex:1;font-size:13px;font-weight:600;color:#1E293B">'+it.nome+'</span>'
+        +'<span style="font-size:12px;color:#64748B">'+it.unidade+'</span>'
+        +'<button onclick="excluirItem('+it.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px">🗑️</button>'
+        +'</div>';
+    }).join('');
+}
+
+function salvarItem(){
+  var nome=document.getElementById('ci-nome').value.trim();
+  var unidade=document.getElementById('ci-unidade').value;
+  if(!nome){notify('Digite o nome do item','warning');return;}
+  var item={id:consumoItemNextId++,nome:nome,unidade:unidade};
+  consumoItens.push(item);
+  saveConsumo();
+  document.getElementById('ci-nome').value='';
+  document.getElementById('ci-custo').value='0';
+  renderItensCadastrados();
+  notify('Item cadastrado ✅');
+}
+
+function excluirItem(id){
+  var it=consumoItens.find(function(x){return x.id===id;});
+  if(!it) return;
+  if(!confirm('Remover item "'+it.nome+'"? As retiradas já registradas serão mantidas.')) return;
+  consumoItens=consumoItens.filter(function(x){return x.id!==id;});
+  saveConsumo();
+  renderItensCadastrados();
+  notify('Item removido','warning');
+}
+
+// ── Registrar Retirada ────────────────────────────────────────────────────────
+function abrirRetirada(){
+  if(!consumoItens.length){
+    notify('Cadastre um item primeiro','warning');
+    abrirCadastroItem();
+    return;
+  }
+  var html='<div class="overlay open" id="modal-retirada" style="z-index:920">'
+    +'<div class="modal" style="width:420px">'
+    +'<div class="modal-hdr"><div class="modal-title">➕ Registrar Retirada</div>'
+    +'<button class="close-btn" onclick="fecharRetirada()">✕</button></div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Item</label>'
+    +'<select id="rt-item" onchange="rtAtualizaUnidade()" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
+    +consumoItens.map(function(it){return '<option value="'+it.id+'">'+it.nome+' ('+it.unidade+')</option>';}).join('')
+    +'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+    +'<div class="field"><label>Quantidade <span id="rt-unidade-lbl" style="color:#94A3B8"></span></label>'
+    +'<input type="number" id="rt-qtd" value="1" step="0.01" min="0" oninput="rtAtualizaCusto()" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'<div class="field"><label>Custo por <span id="rt-unidade-lbl2" style="color:#94A3B8"></span> (R$)</label>'
+    +'<input type="number" id="rt-custo-unit" value="0" step="0.01" min="0" oninput="rtAtualizaCusto()" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'</div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Custo total da retirada</label><div id="rt-custo" style="padding:11px 14px;background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;font-size:16px;font-weight:800;color:#16A34A">R$ 0,00</div></div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Finalidade</label>'
+    +'<select id="rt-finalidade" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
+    +CONSUMO_FINALIDADES.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select></div>'
+    +'<div class="field" style="margin-bottom:16px"><label>Data</label>'
+    +'<input type="date" id="rt-data" value="'+new Date().toISOString().split('T')[0]+'" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'<button onclick="salvarRetirada()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Registrar Retirada</button>'
+    +'</div></div>';
+  var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d.firstElementChild);
+  rtAtualizaUnidade();
+}
+
+function fecharRetirada(){var m=document.getElementById('modal-retirada');if(m)m.remove();}
+
+function rtAtualizaUnidade(){
+  var itemId=+document.getElementById('rt-item').value;
+  var it=consumoItens.find(function(x){return x.id===itemId;});
+  if(it){
+    document.getElementById('rt-unidade-lbl').textContent='('+it.unidade+')';
+    var l2=document.getElementById('rt-unidade-lbl2'); if(l2) l2.textContent=it.unidade;
+  }
+  rtAtualizaCusto();
+}
+
+function rtAtualizaCusto(){
+  var qtd=+document.getElementById('rt-qtd').value||0;
+  var custoUnit=+document.getElementById('rt-custo-unit').value||0;
+  var custo=qtd*custoUnit;
+  var el=document.getElementById('rt-custo');
+  if(el) el.textContent='R$ '+custo.toFixed(2).replace('.',',');
+}
+
+function salvarRetirada(){
+  var itemId=+document.getElementById('rt-item').value;
+  var it=consumoItens.find(function(x){return x.id===itemId;});
+  if(!it){notify('Selecione um item','warning');return;}
+  var qtd=+document.getElementById('rt-qtd').value||0;
+  if(qtd<=0){notify('Informe a quantidade','warning');return;}
+  var custoUnit=+document.getElementById('rt-custo-unit').value||0;
+  var finalidade=document.getElementById('rt-finalidade').value;
+  var dataStr=document.getElementById('rt-data').value;
+  var data=dataStr?new Date(dataStr+'T12:00:00').toISOString():new Date().toISOString();
+
+  var ret={
+    id:consumoRetNextId++,
+    itemId:it.id,
+    itemNome:it.nome,
+    unidade:it.unidade,
+    qtd:qtd,
+    custoUnit:custoUnit,
+    finalidade:finalidade,
+    user:currentUser?currentUser.nome:'Sistema',
+    data:data,
+  };
+  consumoRetiradas.unshift(ret);
+  saveConsumo();
+  fecharRetirada();
+  renderConsumo();
+  notify('Retirada registrada: '+formatQtd(qtd,it.unidade)+' de '+it.nome);
+}
+
+function excluirRetirada(id){
+  if(!confirm('Remover esta retirada?')) return;
+  consumoRetiradas=consumoRetiradas.filter(function(x){return x.id!==id;});
+  saveConsumo();
+  renderConsumo();
+  notify('Retirada removida','warning');
+}
+
+// ── Persistência ──────────────────────────────────────────────────────────────
+function saveConsumo(){
+  try{
+    localStorage.setItem('pc_consumo_itens',JSON.stringify(consumoItens));
+    localStorage.setItem('pc_consumo_ret',JSON.stringify(consumoRetiradas));
+  }catch(e){}
+  if(window._fb&&window._fbReady){
+    consumoItens.forEach(function(it){window._fb.saveConsumoItem(it).catch(function(){});});
+    consumoRetiradas.forEach(function(r){window._fb.saveConsumoRetirada(r).catch(function(){});});
+    window._fb.saveMeta('consumoItemNextId',consumoItemNextId).catch(function(){});
+    window._fb.saveMeta('consumoRetNextId',consumoRetNextId).catch(function(){});
+  }
 }
 
 
