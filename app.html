@@ -1438,14 +1438,31 @@ if('caches' in window){
         u.push(onSnapshot(col('products'),snap=>{
           var updated=snap.docs.map(d=>d.data()).sort((a,b)=>a.id-b.id);
           var lm={}; (window.products||[]).forEach(p=>{lm[p.id]=p;});
+          var recemSalvo=(Date.now()-(window._lastLocalSave||0))<4000;
           updated=updated.map(p=>{
             var loc=lm[p.id];
+            // Se modificamos este produto localmente há pouco, preserva campos críticos
+            if(recemSalvo&&loc){
+              if(loc.expiry!==undefined)    p.expiry=loc.expiry;
+              if(loc.soCadastro!==undefined)p.soCadastro=loc.soCadastro;
+              if(loc.location!==undefined)  p.location=loc.location;
+              if(loc.quantity!==undefined)  p.quantity=loc.quantity;
+              if(loc.category!==undefined)  p.category=loc.category;
+            }
             if((window.trocas||[]).some(t=>t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado'))) p.emTroca=true;
             if((window.rebaixas||[]).some(r=>r.prodId===p.id&&r.status==='ativa')) p.emRebaixa=true;
             if(loc&&loc.rebaixaId) p.rebaixaId=loc.rebaixaId;
             if(loc&&loc.precoVenda!==undefined) p.precoVenda=loc.precoVenda;
             return p;
           });
+          // Adiciona produtos locais que ainda não vieram no snapshot (recém-criados)
+          if(recemSalvo){
+            var idsSnap={}; updated.forEach(p=>{idsSnap[p.id]=true;});
+            (window.products||[]).forEach(function(lp){
+              if(!idsSnap[lp.id]) updated.push(lp);
+            });
+            updated.sort((a,b)=>a.id-b.id);
+          }
           window.products=updated;
           if(window.updateBadge) window.updateBadge();
           const t=window.currentTab;
@@ -5772,11 +5789,12 @@ function confirmarEncerramento(rebaixaId){
     if(p){p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;fbSaveProduct(p);}
     notify('🎉 Rebaixa encerrada — vendeu todas as '+estoque+' unidades!');
   } else if(destino==='troca'){
-    // Sobrou e vai para troca
+    // Sobrou e vai para troca — produto sai da lista a vencer
     if(p){
       p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;
       p.quantity=sobra; // ajusta estoque para o que sobrou
       p.emTroca=true;
+      p.expiry='';p.soCadastro=true; // remove de "a vencer" — foi para troca
       fbSaveProduct(p);
     }
     var entradaTroca={
@@ -5793,14 +5811,14 @@ function confirmarEncerramento(rebaixaId){
     }
     notify('🔄 '+vendido+' vendidas · '+sobra+' enviadas para Troca');
   } else if(destino==='perda'){
-    // Sobrou e é perda
+    // Sobrou e é perda — produto sai da lista a vencer
     var valorUnit=rb.precoOriginal||0;
     var perda=sobra*valorUnit;
     if(p){
       registrarBaixa(p, sobra, 'Perda após rebaixa');
       p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;
-      // remove o produto ou zera estoque
       p.quantity=Math.max(0,p.quantity-sobra);
+      p.expiry='';p.soCadastro=true; // remove de "a vencer" — foi descartado
       fbSaveProduct(p);
     }
     notify('🗑️ '+vendido+' vendidas · '+sobra+' registradas como perda (R$ '+perda.toFixed(2).replace('.',',')+')');
@@ -7336,44 +7354,83 @@ function renderAnaliseSetor(){
   if(!el) return;
   var data=getSetorData();
   var setores=Object.keys(data.porSetor);
+
+  // ── Totais gerais (independente do período): semana e mês atuais ──
+  var hoje=new Date();
+  var diaSemana=hoje.getDay();
+  var diffSeg=diaSemana===0?-6:1-diaSemana;
+  var iniSemana=new Date(hoje); iniSemana.setDate(hoje.getDate()+diffSeg); iniSemana.setHours(0,0,0,0);
+  var fimSemana=new Date(iniSemana); fimSemana.setDate(iniSemana.getDate()+6); fimSemana.setHours(23,59,59,999);
+  var iniMes=new Date(hoje.getFullYear(),hoje.getMonth(),1,0,0,0,0);
+  var fimMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0,23,59,59,999);
+
+  var totalSemana=0, totalMes=0;
+  consumoRetiradas.forEach(function(r){
+    var d=new Date(r.data), v=r.qtd*r.custoUnit;
+    if(d>=iniSemana&&d<=fimSemana) totalSemana+=v;
+    if(d>=iniMes&&d<=fimMes) totalMes+=v;
+  });
+
+  var html='';
+
+  // Cards de totais (semana / mês)
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px">'
+    +'<div style="font-size:11px;color:#16A34A;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Esta semana</div>'
+    +'<div style="font-size:22px;font-weight:800;color:#166534;margin-top:2px">R$ '+totalSemana.toFixed(2).replace('.',',')+'</div></div>'
+    +'<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:14px">'
+    +'<div style="font-size:11px;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Este mês</div>'
+    +'<div style="font-size:22px;font-weight:800;color:#1E293B;margin-top:2px">R$ '+totalMes.toFixed(2).replace('.',',')+'</div></div>'
+    +'</div>';
+
   if(setores.length===0){
-    el.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8"><div style="font-size:40px;margin-bottom:10px">📊</div>Nenhum registro no período selecionado.</div>';
+    html+='<div style="text-align:center;padding:30px;color:#94A3B8"><div style="font-size:40px;margin-bottom:10px">📊</div>Nenhum registro no período selecionado.</div>';
+    el.innerHTML=html;
     return;
   }
+
   var totalGeral=setores.reduce(function(a,s){return a+data.porSetor[s].custo;},0);
   setores.sort(function(a,b){return data.porSetor[b].custo-data.porSetor[a].custo;});
 
-  // Donut SVG
+  // Total do período selecionado
+  html+='<div style="background:#16A34A;border-radius:12px;padding:14px;margin-bottom:16px;color:#fff">'
+    +'<div style="font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.4px">Total no período selecionado</div>'
+    +'<div style="font-size:26px;font-weight:800">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
+    +'<div style="font-size:11px;opacity:.85">'+data.total+' retiradas · '+setores.length+' setores</div></div>';
+
+  // Donut por setor
   var r=52,cx=70,cy=70,circ=2*Math.PI*r,offset=0;
   var circles=setores.map(function(s){
     var frac=totalGeral>0?data.porSetor[s].custo/totalGeral:0;
     var dash=frac*circ;
-    var el='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+corSetor(s)+'" stroke-width="16" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')"></circle>';
-    offset+=dash; return el;
+    var elc='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+corSetor(s)+'" stroke-width="16" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')"></circle>';
+    offset+=dash; return elc;
   }).join('');
   var svg='<svg width="140" height="140" viewBox="0 0 140 140">'+circles
-    +'<text x="70" y="62" text-anchor="middle" font-size="13" fill="#94A3B8">Total</text>'
-    +'<text x="70" y="82" text-anchor="middle" font-size="16" font-weight="800" fill="#1E293B">R$'+totalGeral.toFixed(0)+'</text></svg>';
+    +'<text x="70" y="64" text-anchor="middle" font-size="11" fill="#94A3B8">Total</text>'
+    +'<text x="70" y="82" text-anchor="middle" font-size="15" font-weight="800" fill="#1E293B">R$'+totalGeral.toFixed(0)+'</text></svg>';
 
-  var legend=setores.map(function(s){
+  // Barras horizontais por setor (comparativo visual)
+  var maxCusto=Math.max.apply(null,setores.map(function(s){return data.porSetor[s].custo;}));
+  var barras=setores.map(function(s){
     var d=data.porSetor[s];
     var pct=totalGeral>0?Math.round(d.custo/totalGeral*100):0;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0">'
-      +'<div style="width:11px;height:11px;border-radius:3px;background:'+corSetor(s)+';flex-shrink:0"></div>'
-      +'<span style="font-size:13px;color:#475569;flex:1">'+s+'</span>'
-      +'<span style="font-size:13px;font-weight:700;color:#1E293B">R$ '+d.custo.toFixed(2).replace('.',',')+'</span>'
-      +'<span style="font-size:11px;color:#94A3B8;width:36px;text-align:right">'+pct+'%</span></div>';
+    var larg=maxCusto>0?Math.round(d.custo/maxCusto*100):0;
+    return '<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<span style="font-size:12.5px;color:#475569;font-weight:600">'+s+'</span>'
+      +'<span style="font-size:12.5px;color:#1E293B;font-weight:700">R$ '+d.custo.toFixed(2).replace('.',',')+' <span style="color:#94A3B8;font-weight:400">('+pct+'%)</span></span>'
+      +'</div>'
+      +'<div style="background:#F1F5F9;border-radius:6px;height:8px;overflow:hidden"><div style="background:'+corSetor(s)+';height:100%;width:'+larg+'%;border-radius:6px"></div></div>'
+      +'</div>';
   }).join('');
 
-  var html='<div style="background:#16A34A;border-radius:14px;padding:16px;margin-bottom:16px;color:#fff">'
-    +'<div style="font-size:12px;opacity:.85">Total no período</div>'
-    +'<div style="font-size:28px;font-weight:800">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
-    +'<div style="font-size:12px;opacity:.85">'+data.total+' retiradas · '+setores.length+' setores</div></div>';
+  html+='<div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:16px">'
+    +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:12px">Distribuição por setor</div>'
+    +'<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:14px">'+svg+'<div style="flex:1;min-width:200px">'+barras+'</div></div>'
+    +'</div>';
 
-  html+='<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:18px;margin-bottom:16px">'
-    +'<div>'+svg+'</div><div style="flex:1;min-width:200px">'+legend+'</div></div>';
-
-  // Detalhe por setor
+  // Detalhe por setor (itens)
   html+=setores.map(function(s){
     var d=data.porSetor[s];
     var itens=Object.keys(d.itens).sort(function(a,b){return d.itens[b].custo-d.itens[a].custo;});
@@ -7381,7 +7438,7 @@ function renderAnaliseSetor(){
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+s+'</div>'
       +'<div style="font-weight:800;font-size:15px;color:'+corSetor(s)+'">R$ '+d.custo.toFixed(2).replace('.',',')+'</div></div>'
-      +'<div style="font-size:12px;color:#94A3B8">'+itens.map(function(it){
+      +'<div style="font-size:12px;color:#94A3B8;line-height:1.6">'+itens.map(function(it){
         return it+' ('+(d.itens[it].qtd===Math.floor(d.itens[it].qtd)?d.itens[it].qtd:d.itens[it].qtd.toFixed(2))+'un · R$'+d.itens[it].custo.toFixed(2).replace('.',',')+')';
       }).join(' · ')+'</div></div>';
   }).join('');
@@ -7463,18 +7520,10 @@ function renderConsumo(){
   var retMes=consumoRetiradas.filter(function(r){
     var d=new Date(r.data);
     return d>=inicioMes && d<=fimMes;
-  });
+  }).sort(function(a,b){return new Date(b.data)-new Date(a.data);});
 
-  // Agrupa POR SETOR/FINALIDADE
-  var porSetor={};
-  retMes.forEach(function(r){
-    var s=r.finalidade||'Outros';
-    if(!porSetor[s]) porSetor[s]={custo:0,n:0,retiradas:[]};
-    porSetor[s].custo+=r.qtd*r.custoUnit;
-    porSetor[s].n++;
-    porSetor[s].retiradas.push(r);
-  });
-  var totalGeral=Object.keys(porSetor).reduce(function(a,k){return a+porSetor[k].custo;},0);
+  var totalGeral=retMes.reduce(function(a,r){return a+r.qtd*r.custoUnit;},0);
+  var totalQtd=retMes.length;
 
   var mesLabel=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   mesLabel=mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1);
@@ -7497,10 +7546,10 @@ function renderConsumo(){
   html+='<div style="background:#16A34A;border-radius:14px;padding:18px;margin-bottom:16px;color:#fff">'
     +'<div style="font-size:12px;opacity:.85">Custo total de uso e consumo no mês</div>'
     +'<div style="font-size:32px;font-weight:800;font-family:Space Grotesk,sans-serif">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
-    +'<div style="font-size:12px;opacity:.85">'+Object.keys(porSetor).length+' setores · '+retMes.length+' retiradas</div>'
+    +'<div style="font-size:12px;opacity:.85">'+totalQtd+' retirada'+(totalQtd!==1?'s':'')+'</div>'
     +'</div>';
 
-  if(Object.keys(porSetor).length===0){
+  if(retMes.length===0){
     html+='<div class="card" style="text-align:center;padding:40px">'
       +'<div style="font-size:44px;margin-bottom:12px">🧹</div>'
       +'<div style="font-size:15px;font-weight:700;color:#64748B;margin-bottom:6px">Nenhum registro neste mês</div>'
@@ -7510,48 +7559,34 @@ function renderConsumo(){
     return;
   }
 
-  // LISTA POR SETOR/FINALIDADE
-  html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Consumo por Setor</div>';
-  var setoresOrd=Object.keys(porSetor).sort(function(a,b){return porSetor[b].custo-porSetor[a].custo;});
+  // LISTA — cada retirada em uma linha
+  html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Retiradas do Mês</div>';
 
-  setoresOrd.forEach(function(setor){
-    var g=porSetor[setor];
-    var cor=(typeof corSetor==='function')?corSetor(setor):'#16A34A';
-    var pct=totalGeral>0?Math.round(g.custo/totalGeral*100):0;
+  // Cabeçalho da lista (desktop)
+  html+='<div class="card" style="padding:0;overflow:hidden">';
+  html+='<div style="display:grid;grid-template-columns:2fr 80px 70px 90px 90px 36px;gap:8px;padding:10px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.4px">'
+    +'<div>Produto</div><div style="text-align:center">Data</div><div style="text-align:right">Qtd</div><div style="text-align:right">Custo Un.</div><div style="text-align:right">Total</div><div></div>'
+    +'</div>';
 
-    // Lista de retiradas do setor, ordenadas por data desc
-    var itensHtml=g.retiradas.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(r){
-      var d=new Date(r.data);
-      var cat=r.categoria?getCat(r.categoria):null;
-      var qtdFmt=(r.qtd===Math.floor(r.qtd)?r.qtd:r.qtd.toFixed(2).replace('.',','))+' '+(r.unidade||'un');
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F8FAFC">'
-        +'<div style="width:34px;height:34px;border-radius:9px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(cat?cat.icon:'📦')+'</div>'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-weight:600;font-size:13px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.itemNome+'</div>'
-        +'<div style="font-size:11px;color:#94A3B8">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' · '+(r.user||'')+(cat?' · '+cat.name:'')+'</div>'
-        +'</div>'
-        +'<div style="text-align:right;flex-shrink:0">'
-        +'<div style="font-weight:700;font-size:13px;color:#1E293B">'+qtdFmt+'</div>'
-        +'<div style="font-size:12px;color:#16A34A;font-weight:600">R$ '+(r.qtd*r.custoUnit).toFixed(2).replace('.',',')+'</div>'
-        +'</div>'
-        +'<button onclick="excluirRetirada('+r.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px;flex-shrink:0">🗑️</button>'
-        +'</div>';
-    }).join('');
-
-    html+='<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden;border-left:4px solid '+cor+'">'
-      +'<div onclick="toggleRetiradas(&quot;'+setor.replace(/"/g,'')+'&quot;)" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:'+cor+'08">'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+setor+'</div>'
-      +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+g.n+' retirada'+(g.n!==1?'s':'')+' · '+pct+'% do mês</div>'
+  html+=retMes.map(function(r){
+    var d=new Date(r.data);
+    var cat=r.categoria?getCat(r.categoria):null;
+    var qtdFmt=(r.qtd===Math.floor(r.qtd)?r.qtd:r.qtd.toFixed(2).replace('.',','))+' '+(r.unidade||'un');
+    var total=r.qtd*r.custoUnit;
+    return '<div style="display:grid;grid-template-columns:2fr 80px 70px 90px 90px 36px;gap:8px;padding:11px 14px;border-bottom:1px solid #F8FAFC;align-items:center">'
+      +'<div style="min-width:0">'
+      +'<div style="font-weight:600;font-size:13px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(cat?cat.icon+' ':'')+r.itemNome+'</div>'
+      +'<div style="font-size:11px;color:#94A3B8">'+r.finalidade+(r.user?' · '+r.user:'')+'</div>'
       +'</div>'
-      +'<div style="text-align:right"><div style="font-size:17px;font-weight:800;color:'+cor+'">R$ '+g.custo.toFixed(2).replace('.',',')+'</div></div>'
-      +'<span style="color:#94A3B8;font-size:13px" id="arrow-'+setor.replace(/[^a-zA-Z0-9]/g,'')+'">▼</span>'
-      +'</div>'
-      +'<div id="retiradas-'+setor.replace(/[^a-zA-Z0-9]/g,'')+'" style="display:none;padding:4px 16px 12px">'
-      +itensHtml
-      +'</div>'
+      +'<div style="text-align:center;font-size:12px;color:#64748B">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+'</div>'
+      +'<div style="text-align:right;font-size:12.5px;font-weight:600;color:#1E293B">'+qtdFmt+'</div>'
+      +'<div style="text-align:right;font-size:12.5px;color:#64748B">R$ '+r.custoUnit.toFixed(2).replace('.',',')+'</div>'
+      +'<div style="text-align:right;font-size:13px;font-weight:700;color:#16A34A">R$ '+total.toFixed(2).replace('.',',')+'</div>'
+      +'<button onclick="excluirRetirada('+r.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px">🗑️</button>'
       +'</div>';
-  });
+  }).join('');
+
+  html+='</div>';
 
   el.innerHTML=html;
 }
@@ -8025,6 +8060,7 @@ function salvarAddVencer(){
     if(window._fb&&window._fbReady) window._fb.saveProduct(p).catch(function(){});
   }
 
+  window._lastLocalSave=Date.now();
   saveData();
   fecharAddVencer();
   notify('✅ '+p.name+' adicionado a Produtos a Vencer');
