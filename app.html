@@ -1408,7 +1408,9 @@ if('caches' in window){
         window.locations  =lS.docs.map(d=>d.data());
         window.historico  =hS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
         window.trocas     =tS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+        if(window.trocas.length){var maxTrId=Math.max.apply(null,window.trocas.map(t=>t.id||0));if(!window.trocaNextId||window.trocaNextId<=maxTrId)window.trocaNextId=maxTrId+1;}
         window.rebaixas   =rbS.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+        if(window.rebaixas.length){var maxRbId=Math.max.apply(null,window.rebaixas.map(r=>r.id||0));if(!window.rebaixaNextId||window.rebaixaNextId<=maxRbId)window.rebaixaNextId=maxRbId+1;}
         try {
           var ciS=await safeGet(col('consumo_itens'));
           var crS=await safeGet(col('consumo_ret'));
@@ -1428,6 +1430,7 @@ if('caches' in window){
         const nh=mS.docs.find(d=>d.id==='histNextId');  if(nh) window.histNextId=nh.data().value;
         const cin=mS.docs.find(d=>d.id==='consumoItemNextId'); if(cin) window.consumoItemNextId=cin.data().value;
         const crn=mS.docs.find(d=>d.id==='consumoRetNextId');  if(crn) window.consumoRetNextId=crn.data().value;
+        const nrb=mS.docs.find(d=>d.id==='rebaixaNextId'); if(nrb) window.rebaixaNextId=nrb.data().value;
       },
 
       setupListeners: ()=>{
@@ -1465,7 +1468,6 @@ if('caches' in window){
         }));
         u.push(onSnapshot(col('rebaixas'),snap=>{
           window.rebaixas=snap.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
-          console.log('[SNAPSHOT REBAIXAS] Recebido do Firebase:', window.rebaixas.length, 'rebaixas');
           if(window.updateBadge) window.updateBadge();
           const t=window.currentTab;
           if(t==='rebaixas' &&window.renderRebaixas) window.renderRebaixas();
@@ -5479,18 +5481,12 @@ function confirmarRebaixa(prodId){
     user:currentUser?currentUser.nome:'Sistema',status:'ativa',
   };
   rebaixas.unshift(entrada);
-  console.log('[REBAIXA] Criada:', entrada.id, '| Total rebaixas:', rebaixas.length, '| Ativas:', rebaixas.filter(function(r){return r.status==='ativa';}).length);
   p.precoVenda=novo;p.emRebaixa=true;p.rebaixaId=entrada.id;
   window._lastLocalSave=Date.now();
   fbSaveProduct(p);saveData();
   if(window._fb&&window._fbReady){
-    window._fb.saveRebaixa(entrada).then(function(){
-      console.log('[REBAIXA] Salva no Firebase:', entrada.id);
-    }).catch(function(e){
-      console.error('[REBAIXA] ERRO ao salvar:', e);
-    });
-  } else {
-    console.warn('[REBAIXA] Firebase não disponível — salvo só local');
+    window._fb.saveRebaixa(entrada).catch(function(e){console.error('[REBAIXA] ERRO:',e);});
+    window._fb.saveMeta('rebaixaNextId',rebaixaNextId).catch(function(){});
   }
   fecharModalRebaixa();
   notify('💰 Rebaixa aplicada: '+desc+'% em '+p.name);
@@ -5825,7 +5821,6 @@ function renderRebaixas(){
   var el=document.getElementById('rebaixas-body');
   if(!el) return;
   var ativas=rebaixas.filter(function(r){return r.status==='ativa';});
-  console.log('[RENDER REBAIXAS] Total:', rebaixas.length, '| Ativas:', ativas.length);
   var encerradas=rebaixas.filter(function(r){return r.status!=='ativa';});
   // ── Navigation header ────────────────────────────────────────────────
   var pendTrocas=trocas.filter(function(t){return t.status==='pendente'||t.status==='enviado';}).length;
@@ -7660,14 +7655,14 @@ function abrirRetirada(){
     +'<div class="field" style="margin-bottom:12px"><label>Categoria</label>'
     +'<select id="rt-cat" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
     +'<option value="0">Sem categoria</option>'
-    +categories.map(function(cat){return \'<option value="\'+cat.id+\'">\'+cat.icon+\' \'+cat.name+\'</option>\';}).join('')+'</select></div>'
+    +categories.map(function(cat){return '<option value="'+cat.id+'">'+cat.icon+' '+cat.name+'</option>';}).join('')+'</select></div>'
 
     +'<div style="display:grid;grid-template-columns:1fr 90px;gap:10px;margin-bottom:12px">'
     +'<div class="field"><label>Quantidade</label>'
     +'<input type="number" id="rt-qtd" value="1" step="0.01" min="0" oninput="rtAtualizaCusto()" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
     +'<div class="field"><label>Unidade</label>'
     +'<select id="rt-unidade" style="width:100%;padding:11px 8px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
-    +CONSUMO_UNIDADES.map(function(u){return \'<option>\'+u+\'</option>\';}).join('')+'</select></div>'
+    +CONSUMO_UNIDADES.map(function(u){return '<option>'+u+'</option>';}).join('')+'</select></div>'
     +'</div>'
 
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
@@ -7678,7 +7673,7 @@ function abrirRetirada(){
 
     +'<div class="field" style="margin-bottom:12px"><label>Finalidade / Setor</label>'
     +'<select id="rt-finalidade" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
-    +CONSUMO_FINALIDADES.map(function(f){return \'<option>\'+f+\'</option>\';}).join('')+'</select></div>'
+    +CONSUMO_FINALIDADES.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select></div>'
 
     +'<div class="field" style="margin-bottom:16px"><label>Data</label>'
     +'<input type="date" id="rt-data" value="'+new Date().toISOString().split('T')[0]+'" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
