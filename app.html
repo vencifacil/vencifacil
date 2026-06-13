@@ -1987,7 +1987,7 @@ if('caches' in window){
       <div class="nav-icon-wrap"><div class="nav-icon">📊</div></div><span class="nav-label">Dashboard</span>
     </button>
     <button class="nav-item" id="nav-products" onclick="setTab('products')">
-      <div class="nav-icon-wrap"><div class="nav-icon">📦</div></div><span class="nav-label">Produtos</span>
+      <div class="nav-icon-wrap"><div class="nav-icon">📦</div></div><span class="nav-label">Produtos a Vencer</span>
     </button>
     <button class="nav-item" id="nav-alerts" onclick="setTab('alerts')">
       <div class="nav-icon-wrap"><div class="nav-icon">🔔</div><span class="nav-badge" id="alert-badge">0</span></div><span class="nav-label">Alertas</span>
@@ -2267,7 +2267,7 @@ function notify(msg,type){
   clearTimeout(notifTimer);notifTimer=setTimeout(function(){el.style.display='none';},3000);
 }
 
-var tabTitles={dashboard:'Dashboard',products:'Produtos',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço',consumo:'Uso e Consumo Interno'};
+var tabTitles={dashboard:'Dashboard',products:'Produtos a Vencer',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço',consumo:'Uso e Consumo Interno'};
 function setTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
@@ -7275,106 +7275,282 @@ var consumoRetNextId=1;
 var CONSUMO_FINALIDADES=['Limpeza','Produção Padaria','Açougue','Cozinha','Manutenção','Escritório','Outros'];
 var CONSUMO_UNIDADES=['g','kg','ml','L','un','cx','pct','rolo'];
 
+// ══════════════════════════════════════════════════════════════════════
+// ANÁLISE POR SETOR — Uso e Consumo
+// ══════════════════════════════════════════════════════════════════════
+var CONSUMO_SETOR_CORES={
+  'Limpeza':'#2563EB','Produção Padaria':'#B45309','Açougue':'#DC2626',
+  'Cozinha':'#16A34A','Manutenção':'#64748B','Escritório':'#7C3AED','Outros':'#94A3B8'
+};
+
+function corSetor(s){ return CONSUMO_SETOR_CORES[s]||'#94A3B8'; }
+
+function abrirAnaliseSetor(){
+  var hoje=new Date();
+  var inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  var html='<div class="overlay open" id="modal-setor" style="z-index:920">'
+    +'<div class="modal" style="width:min(620px,95vw);max-height:90vh;overflow-y:auto">'
+    +'<div class="modal-hdr"><div class="modal-title">📊 Análise por Setor</div>'
+    +'<button class="close-btn" onclick="fecharAnaliseSetor()">✕</button></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
+    +'<div class="field"><label>De</label><input type="date" id="setor-de" value="'+inicio.toISOString().split('T')[0]+'" onchange="renderAnaliseSetor()" style="width:100%;padding:10px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'<div class="field"><label>Até</label><input type="date" id="setor-ate" value="'+hoje.toISOString().split('T')[0]+'" onchange="renderAnaliseSetor()" style="width:100%;padding:10px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'</div>'
+    +'<div id="setor-conteudo"></div>'
+    +'<button onclick="exportarSetorPDF()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:14px">📄 Exportar Relatório PDF</button>'
+    +'</div></div>';
+  var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d.firstElementChild);
+  renderAnaliseSetor();
+}
+
+function fecharAnaliseSetor(){var m=document.getElementById('modal-setor');if(m)m.remove();}
+
+function getSetorData(){
+  var de=document.getElementById('setor-de').value;
+  var ate=document.getElementById('setor-ate').value;
+  var dDe=de?new Date(de+'T00:00:00'):new Date(0);
+  var dAte=ate?new Date(ate+'T23:59:59'):new Date();
+  var rets=consumoRetiradas.filter(function(r){
+    var d=new Date(r.data);
+    return d>=dDe && d<=dAte;
+  });
+  var porSetor={};
+  rets.forEach(function(r){
+    var s=r.finalidade||'Outros';
+    if(!porSetor[s]) porSetor[s]={custo:0,qtd:0,n:0,itens:{}};
+    porSetor[s].custo+=r.qtd*r.custoUnit;
+    porSetor[s].qtd+=r.qtd;
+    porSetor[s].n++;
+    if(!porSetor[s].itens[r.itemNome]) porSetor[s].itens[r.itemNome]={qtd:0,custo:0};
+    porSetor[s].itens[r.itemNome].qtd+=r.qtd;
+    porSetor[s].itens[r.itemNome].custo+=r.qtd*r.custoUnit;
+  });
+  return {porSetor:porSetor, total:rets.length, de:de, ate:ate};
+}
+
+function renderAnaliseSetor(){
+  var el=document.getElementById('setor-conteudo');
+  if(!el) return;
+  var data=getSetorData();
+  var setores=Object.keys(data.porSetor);
+  if(setores.length===0){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8"><div style="font-size:40px;margin-bottom:10px">📊</div>Nenhum registro no período selecionado.</div>';
+    return;
+  }
+  var totalGeral=setores.reduce(function(a,s){return a+data.porSetor[s].custo;},0);
+  setores.sort(function(a,b){return data.porSetor[b].custo-data.porSetor[a].custo;});
+
+  // Donut SVG
+  var r=52,cx=70,cy=70,circ=2*Math.PI*r,offset=0;
+  var circles=setores.map(function(s){
+    var frac=totalGeral>0?data.porSetor[s].custo/totalGeral:0;
+    var dash=frac*circ;
+    var el='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+corSetor(s)+'" stroke-width="16" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')"></circle>';
+    offset+=dash; return el;
+  }).join('');
+  var svg='<svg width="140" height="140" viewBox="0 0 140 140">'+circles
+    +'<text x="70" y="62" text-anchor="middle" font-size="13" fill="#94A3B8">Total</text>'
+    +'<text x="70" y="82" text-anchor="middle" font-size="16" font-weight="800" fill="#1E293B">R$'+totalGeral.toFixed(0)+'</text></svg>';
+
+  var legend=setores.map(function(s){
+    var d=data.porSetor[s];
+    var pct=totalGeral>0?Math.round(d.custo/totalGeral*100):0;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0">'
+      +'<div style="width:11px;height:11px;border-radius:3px;background:'+corSetor(s)+';flex-shrink:0"></div>'
+      +'<span style="font-size:13px;color:#475569;flex:1">'+s+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:#1E293B">R$ '+d.custo.toFixed(2).replace('.',',')+'</span>'
+      +'<span style="font-size:11px;color:#94A3B8;width:36px;text-align:right">'+pct+'%</span></div>';
+  }).join('');
+
+  var html='<div style="background:#16A34A;border-radius:14px;padding:16px;margin-bottom:16px;color:#fff">'
+    +'<div style="font-size:12px;opacity:.85">Total no período</div>'
+    +'<div style="font-size:28px;font-weight:800">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
+    +'<div style="font-size:12px;opacity:.85">'+data.total+' retiradas · '+setores.length+' setores</div></div>';
+
+  html+='<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:18px;margin-bottom:16px">'
+    +'<div>'+svg+'</div><div style="flex:1;min-width:200px">'+legend+'</div></div>';
+
+  // Detalhe por setor
+  html+=setores.map(function(s){
+    var d=data.porSetor[s];
+    var itens=Object.keys(d.itens).sort(function(a,b){return d.itens[b].custo-d.itens[a].custo;});
+    return '<div class="card" style="margin-bottom:10px;padding:14px 16px;border-left:4px solid '+corSetor(s)+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+s+'</div>'
+      +'<div style="font-weight:800;font-size:15px;color:'+corSetor(s)+'">R$ '+d.custo.toFixed(2).replace('.',',')+'</div></div>'
+      +'<div style="font-size:12px;color:#94A3B8">'+itens.map(function(it){
+        return it+' ('+(d.itens[it].qtd===Math.floor(d.itens[it].qtd)?d.itens[it].qtd:d.itens[it].qtd.toFixed(2))+'un · R$'+d.itens[it].custo.toFixed(2).replace('.',',')+')';
+      }).join(' · ')+'</div></div>';
+  }).join('');
+
+  el.innerHTML=html;
+}
+
+function exportarSetorPDF(){
+  if(!window.jspdf){loadJsPDF(function(){exportarSetorPDF();});return;}
+  var data=getSetorData();
+  var setores=Object.keys(data.porSetor).sort(function(a,b){return data.porSetor[b].custo-data.porSetor[a].custo;});
+  if(setores.length===0){notify('Nenhum dado para exportar','warning');return;}
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var totalGeral=setores.reduce(function(a,s){return a+data.porSetor[s].custo;},0);
+
+  doc.setFontSize(16);doc.setTextColor(22,163,74);
+  doc.text(pdfTxt('Relatorio de Uso e Consumo por Setor'),14,18);
+  doc.setFontSize(10);doc.setTextColor(100,116,139);
+  var periodo='Periodo: '+(data.de?data.de.split('-').reverse().join('/'):'inicio')+' a '+(data.ate?data.ate.split('-').reverse().join('/'):'hoje');
+  doc.text(pdfTxt(periodo),14,25);
+  doc.setFontSize(13);doc.setTextColor(15,23,42);
+  doc.text(pdfTxt('Total geral: R$ '+totalGeral.toFixed(2).replace('.',',')),14,33);
+
+  // Tabela resumo por setor
+  var rows=setores.map(function(s){
+    var d=data.porSetor[s];
+    var pct=totalGeral>0?Math.round(d.custo/totalGeral*100):0;
+    return [pdfTxt(s), d.n+'', d.qtd.toFixed(2).replace('.',','), 'R$ '+d.custo.toFixed(2).replace('.',','), pct+'%'];
+  });
+  doc.autoTable({
+    startY:40,
+    head:[[pdfTxt('Setor'),pdfTxt('Retiradas'),pdfTxt('Qtd'),pdfTxt('Custo'),'%']],
+    body:rows,
+    theme:'striped',
+    headStyles:{fillColor:[22,163,74],textColor:255,fontSize:10},
+    bodyStyles:{fontSize:9},
+    columnStyles:{3:{fontStyle:'bold'}}
+  });
+
+  // Detalhe por setor
+  var y=doc.lastAutoTable.finalY+10;
+  setores.forEach(function(s){
+    var d=data.porSetor[s];
+    if(y>260){doc.addPage();y=20;}
+    doc.setFontSize(11);doc.setTextColor(15,23,42);
+    doc.text(pdfTxt(s+' — R$ '+d.custo.toFixed(2).replace('.',',')),14,y);
+    y+=2;
+    var itens=Object.keys(d.itens).sort(function(a,b){return d.itens[b].custo-d.itens[a].custo;});
+    var itemRows=itens.map(function(it){
+      return [pdfTxt(it), d.itens[it].qtd.toFixed(2).replace('.',','), 'R$ '+d.itens[it].custo.toFixed(2).replace('.',',')];
+    });
+    doc.autoTable({
+      startY:y+2,
+      head:[[pdfTxt('Item'),pdfTxt('Qtd'),pdfTxt('Custo')]],
+      body:itemRows,
+      theme:'grid',
+      headStyles:{fillColor:[100,116,139],textColor:255,fontSize:8},
+      bodyStyles:{fontSize:8},
+      margin:{left:14,right:14}
+    });
+    y=doc.lastAutoTable.finalY+8;
+  });
+
+  doc.save('uso-consumo-setor-'+(data.de||'inicio')+'.pdf');
+  notify('Relatório PDF gerado! 📄');
+}
+
 function renderConsumo(){
   var el=document.getElementById('consumo-body');
   if(!el) return;
 
-  // Semana atual (segunda a domingo)
+  // Mês atual com offset
+  if(window._consumoMes===undefined) window._consumoMes=0;
   var hoje=new Date();
-  var diaSemana=hoje.getDay();
-  var diffSeg=diaSemana===0?-6:1-diaSemana;
-  var inicioSemana=new Date(hoje); inicioSemana.setDate(hoje.getDate()+diffSeg); inicioSemana.setHours(0,0,0,0);
-  var fimSemana=new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate()+6); fimSemana.setHours(23,59,59,999);
+  var ref=new Date(hoje.getFullYear(), hoje.getMonth()+window._consumoMes, 1);
+  var inicioMes=new Date(ref.getFullYear(), ref.getMonth(), 1, 0,0,0,0);
+  var fimMes=new Date(ref.getFullYear(), ref.getMonth()+1, 0, 23,59,59,999);
 
-  if(window._consumoSemana===undefined) window._consumoSemana=0;
-  // Aplica offset de semana
-  inicioSemana.setDate(inicioSemana.getDate()+window._consumoSemana*7);
-  fimSemana.setDate(fimSemana.getDate()+window._consumoSemana*7);
-
-  // Filtra retiradas da semana
-  var retSemana=consumoRetiradas.filter(function(r){
+  var retMes=consumoRetiradas.filter(function(r){
     var d=new Date(r.data);
-    return d>=inicioSemana && d<=fimSemana;
+    return d>=inicioMes && d<=fimMes;
   });
 
-  // Agrupa por item
+  // Agrupa por item (produto)
   var agrupado={};
-  retSemana.forEach(function(r){
+  retMes.forEach(function(r){
     if(!agrupado[r.itemId]){
-      agrupado[r.itemId]={nome:r.itemNome,unidade:r.unidade||'un',qtdTotal:0,custoTotal:0,retiradas:[]};
+      agrupado[r.itemId]={nome:r.itemNome,qtdTotal:0,custoTotal:0,retiradas:[]};
     }
     agrupado[r.itemId].qtdTotal+=r.qtd;
     agrupado[r.itemId].custoTotal+=r.qtd*r.custoUnit;
     agrupado[r.itemId].retiradas.push(r);
   });
-
   var totalGeral=Object.keys(agrupado).reduce(function(a,k){return a+agrupado[k].custoTotal;},0);
 
-  var semanaLabel=inicioSemana.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' a '+fimSemana.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  var mesLabel=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  mesLabel=mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1);
 
   var html='';
-
-  // Header com ações
   html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
-    +'<button onclick="abrirRetirada()" class="btn btn-primary" style="font-size:13px;padding:9px 16px">➕ Registrar Retirada</button>'
-    +'<button onclick="abrirCadastroItem()" class="btn btn-secondary" style="font-size:13px;padding:9px 16px">📦 Cadastrar Item</button>'
+    +'<button onclick="abrirRetirada()" class="btn btn-primary" style="font-size:13px;padding:9px 16px">➕ Registrar Uso/Consumo</button>'
+    +'<button onclick="abrirAnaliseSetor()" class="btn btn-secondary" style="font-size:13px;padding:9px 16px">📊 Análise por Setor</button>'
     +'</div>';
 
-  // Navegação de semana
+  // Navegação de mês
   html+='<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px 16px;margin-bottom:16px">'
-    +'<button onclick="window._consumoSemana--;renderConsumo()" class="btn btn-secondary btn-sm">←</button>'
-    +'<div style="text-align:center"><div style="font-size:11px;color:#94A3B8">Semana</div>'
-    +'<div style="font-size:14px;font-weight:700;color:#1E293B">'+semanaLabel+(window._consumoSemana===0?' (atual)':'')+'</div></div>'
-    +'<button onclick="if(window._consumoSemana<0){window._consumoSemana++;renderConsumo()}" class="btn btn-secondary btn-sm" '+(window._consumoSemana>=0?'disabled style="opacity:.4"':'')+'>→</button>'
+    +'<button onclick="window._consumoMes--;renderConsumo()" class="btn btn-secondary btn-sm">←</button>'
+    +'<div style="text-align:center"><div style="font-size:11px;color:#94A3B8">Mês</div>'
+    +'<div style="font-size:14px;font-weight:700;color:#1E293B">'+mesLabel+(window._consumoMes===0?' (atual)':'')+'</div></div>'
+    +'<button onclick="if(window._consumoMes<0){window._consumoMes++;renderConsumo()}" class="btn btn-secondary btn-sm" '+(window._consumoMes>=0?'disabled style="opacity:.4"':'')+'>→</button>'
     +'</div>';
 
-  // Total da semana
+  // Total do mês
   html+='<div style="background:#16A34A;border-radius:14px;padding:18px;margin-bottom:16px;color:#fff">'
-    +'<div style="font-size:12px;opacity:.85">Custo total de uso e consumo na semana</div>'
+    +'<div style="font-size:12px;opacity:.85">Custo total de uso e consumo no mês</div>'
     +'<div style="font-size:32px;font-weight:800;font-family:Space Grotesk,sans-serif">R$ '+totalGeral.toFixed(2).replace('.',',')+'</div>'
-    +'<div style="font-size:12px;opacity:.85">'+Object.keys(agrupado).length+' itens · '+retSemana.length+' retiradas</div>'
+    +'<div style="font-size:12px;opacity:.85">'+Object.keys(agrupado).length+' itens · '+retMes.length+' retiradas</div>'
     +'</div>';
 
-  // Lista agrupada por item
   if(Object.keys(agrupado).length===0){
     html+='<div class="card" style="text-align:center;padding:40px">'
       +'<div style="font-size:44px;margin-bottom:12px">🧹</div>'
-      +'<div style="font-size:15px;font-weight:700;color:#64748B;margin-bottom:6px">Nenhuma retirada nesta semana</div>'
-      +'<div style="font-size:13px;color:#94A3B8">Registre o que foi usado internamente (limpeza, padaria, etc).</div>'
+      +'<div style="font-size:15px;font-weight:700;color:#64748B;margin-bottom:6px">Nenhum registro neste mês</div>'
+      +'<div style="font-size:13px;color:#94A3B8">Registre o que foi usado internamente buscando no cadastro de produtos.</div>'
       +'</div>';
-  } else {
-    html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Consumo por Item</div>';
-    var ordenado=Object.keys(agrupado).sort(function(a,b){return agrupado[b].custoTotal-agrupado[a].custoTotal;});
-    ordenado.forEach(function(itemId){
-      var g=agrupado[itemId];
-      html+='<div class="card" style="margin-bottom:10px;padding:14px 16px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+g.nome+'</div>'
-        +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+g.retiradas.length+' retirada'+(g.retiradas.length!==1?'s':'')+' na semana</div>'
-        +'</div>'
-        +'<div style="text-align:right">'
-        +'<div style="font-size:17px;font-weight:800;color:#16A34A">'+formatQtd(g.qtdTotal,g.unidade)+'</div>'
-        +'<div style="font-size:13px;font-weight:700;color:#1E293B">R$ '+g.custoTotal.toFixed(2).replace('.',',')+'</div>'
-        +'</div>'
-        +'<button onclick="toggleRetiradas('+itemId+')" class="btn btn-secondary btn-sm" style="flex-shrink:0">▼</button>'
-        +'</div>'
-        +'<div id="retiradas-'+itemId+'" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #F1F5F9">'
-        +g.retiradas.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(r){
-          var d=new Date(r.data);
-          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px">'
-            +'<div><span style="color:#475569">'+d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'})+'</span> '
-            +'<span style="color:#94A3B8">· '+r.finalidade+'</span> '
-            +'<span style="color:#94A3B8">· '+(r.user||'')+'</span></div>'
-            +'<div style="display:flex;align-items:center;gap:10px">'
-            +'<span style="font-weight:600;color:#1E293B">'+formatQtd(r.qtd,r.unidade)+'</span>'
-            +'<button onclick="excluirRetirada('+r.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px">🗑️</button>'
-            +'</div></div>';
-        }).join('')
-        +'</div>'
-        +'</div>';
-    });
+    el.innerHTML=html;
+    return;
   }
+
+  // Lista por item — total do mês + detalhe por semana
+  html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Consumo por Item</div>';
+  var ordenado=Object.keys(agrupado).sort(function(a,b){return agrupado[b].custoTotal-agrupado[a].custoTotal;});
+  ordenado.forEach(function(itemId){
+    var g=agrupado[itemId];
+    // Agrupa as retiradas por semana do mês
+    var semanas={};
+    g.retiradas.forEach(function(r){
+      var d=new Date(r.data);
+      var semanaNum=Math.ceil(d.getDate()/7);
+      if(!semanas[semanaNum]) semanas[semanaNum]={qtd:0,custo:0,n:0};
+      semanas[semanaNum].qtd+=r.qtd;
+      semanas[semanaNum].custo+=r.qtd*r.custoUnit;
+      semanas[semanaNum].n++;
+    });
+    var semanasHtml=Object.keys(semanas).sort().map(function(sn){
+      var s=semanas[sn];
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:12.5px;border-bottom:1px solid #F8FAFC">'
+        +'<span style="color:#64748B">📅 Semana '+sn+' <span style="color:#CBD5E1">('+s.n+'x)</span></span>'
+        +'<div style="display:flex;gap:12px"><span style="font-weight:600;color:#1E293B">'+(s.qtd===Math.floor(s.qtd)?s.qtd:s.qtd.toFixed(2).replace('.',','))+' un</span>'
+        +'<span style="font-weight:700;color:#16A34A;width:80px;text-align:right">R$ '+s.custo.toFixed(2).replace('.',',')+'</span></div>'
+        +'</div>';
+    }).join('');
+
+    html+='<div class="card" style="margin-bottom:10px;padding:14px 16px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer" onclick="toggleRetiradas('+itemId+')">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+g.nome+'</div>'
+      +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+g.retiradas.length+' retirada'+(g.retiradas.length!==1?'s':'')+' no mês · '+Object.keys(semanas).length+' semana'+(Object.keys(semanas).length!==1?'s':'')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+      +'<div style="font-size:17px;font-weight:800;color:#16A34A">'+(g.qtdTotal===Math.floor(g.qtdTotal)?g.qtdTotal:g.qtdTotal.toFixed(2).replace('.',','))+' un</div>'
+      +'<div style="font-size:13px;font-weight:700;color:#1E293B">R$ '+g.custoTotal.toFixed(2).replace('.',',')+'</div>'
+      +'</div>'
+      +'<span style="color:#94A3B8;font-size:13px">▼</span>'
+      +'</div>'
+      +'<div id="retiradas-'+itemId+'" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid #F1F5F9">'
+      +'<div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Detalhe por semana</div>'
+      +semanasHtml
+      +'</div>'
+      +'</div>';
+  });
 
   el.innerHTML=html;
 }
@@ -7448,61 +7624,105 @@ function excluirItem(id){
 
 // ── Registrar Retirada ────────────────────────────────────────────────────────
 function abrirRetirada(){
-  if(!consumoItens.length){
-    notify('Cadastre um item primeiro','warning');
-    abrirCadastroItem();
-    return;
-  }
   var html='<div class="overlay open" id="modal-retirada" style="z-index:920">'
-    +'<div class="modal" style="width:420px">'
-    +'<div class="modal-hdr"><div class="modal-title">➕ Registrar Retirada</div>'
+    +'<div class="modal" style="width:440px">'
+    +'<div class="modal-hdr"><div class="modal-title">➕ Registrar Uso/Consumo</div>'
     +'<button class="close-btn" onclick="fecharRetirada()">✕</button></div>'
-    +'<div class="field" style="margin-bottom:12px"><label>Item</label>'
-    +'<select id="rt-item" onchange="rtAtualizaUnidade()" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
-    +consumoItens.map(function(it){return '<option value="'+it.id+'">'+it.nome+' ('+it.unidade+')</option>';}).join('')
-    +'</select></div>'
+
+    +'<div class="field" style="margin-bottom:12px"><label>Buscar produto (nome ou código de barras)</label>'
+    +'<input type="text" id="rt-busca" placeholder="Digite para buscar no cadastro..." oninput="rtBuscarProduto()" autocomplete="off" '
+    +'style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/>'
+    +'<div id="rt-resultados" style="margin-top:6px;max-height:180px;overflow-y:auto"></div>'
+    +'</div>'
+
+    +'<div id="rt-selecionado" style="display:none">'
+    +'<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">'
+    +'<div id="rt-sel-icon" style="width:38px;height:38px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>'
+    +'<div style="flex:1;min-width:0"><div id="rt-sel-nome" style="font-weight:700;font-size:13.5px;color:#1E293B"></div>'
+    +'<div id="rt-sel-info" style="font-size:11.5px;color:#94A3B8"></div></div>'
+    +'<button onclick="rtLimparSelecao()" style="background:none;border:none;cursor:pointer;color:#64748B;font-size:14px">✕</button>'
+    +'</div>'
+
+    +'<input type="hidden" id="rt-prod-id"/>'
+
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
-    +'<div class="field"><label>Quantidade <span id="rt-unidade-lbl" style="color:#94A3B8"></span></label>'
+    +'<div class="field"><label>Quantidade</label>'
     +'<input type="number" id="rt-qtd" value="1" step="0.01" min="0" oninput="rtAtualizaCusto()" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
-    +'<div class="field"><label>Custo por <span id="rt-unidade-lbl2" style="color:#94A3B8"></span> (R$)</label>'
+    +'<div class="field"><label>Custo unitário (R$)</label>'
     +'<input type="number" id="rt-custo-unit" value="0" step="0.01" min="0" oninput="rtAtualizaCusto()" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
     +'</div>'
-    +'<div class="field" style="margin-bottom:12px"><label>Custo total da retirada</label><div id="rt-custo" style="padding:11px 14px;background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;font-size:16px;font-weight:800;color:#16A34A">R$ 0,00</div></div>'
+    +'<div class="field" style="margin-bottom:12px"><label>Custo total</label><div id="rt-custo" style="padding:11px 14px;background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;font-size:16px;font-weight:800;color:#16A34A">R$ 0,00</div></div>'
     +'<div class="field" style="margin-bottom:12px"><label>Finalidade</label>'
     +'<select id="rt-finalidade" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
     +CONSUMO_FINALIDADES.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select></div>'
     +'<div class="field" style="margin-bottom:16px"><label>Data</label>'
     +'<input type="date" id="rt-data" value="'+new Date().toISOString().split('T')[0]+'" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
-    +'<button onclick="salvarRetirada()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Registrar Retirada</button>'
+    +'<button onclick="salvarRetirada()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Registrar Uso/Consumo</button>'
+    +'</div>'
+
     +'</div></div>';
   var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d.firstElementChild);
-  rtAtualizaUnidade();
+  setTimeout(function(){var b=document.getElementById('rt-busca');if(b)b.focus();},100);
 }
 
 function fecharRetirada(){var m=document.getElementById('modal-retirada');if(m)m.remove();}
 
-function rtAtualizaUnidade(){
-  var itemId=+document.getElementById('rt-item').value;
-  var it=consumoItens.find(function(x){return x.id===itemId;});
-  if(it){
-    document.getElementById('rt-unidade-lbl').textContent='('+it.unidade+')';
-    var l2=document.getElementById('rt-unidade-lbl2'); if(l2) l2.textContent=it.unidade;
+function rtBuscarProduto(){
+  var termo=document.getElementById('rt-busca').value.trim().toLowerCase();
+  var resEl=document.getElementById('rt-resultados');
+  if(!termo){ resEl.innerHTML=''; return; }
+  var matches=products.filter(function(p){
+    return p.name.toLowerCase().indexOf(termo)>=0 || (p.barcode&&p.barcode.indexOf(termo)>=0);
+  }).slice(0,8);
+  if(matches.length===0){
+    resEl.innerHTML='<div style="padding:10px;font-size:12.5px;color:#94A3B8;text-align:center">Nenhum produto encontrado no cadastro</div>';
+    return;
   }
+  resEl.innerHTML=matches.map(function(p){
+    var cat=getCat(p.category);
+    return '<div onclick="rtSelecionarProduto('+p.id+')" style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:#fff;border:1px solid #E2E8F0;border-radius:9px;margin-bottom:5px;cursor:pointer">'
+      +'<span style="font-size:18px">'+cat.icon+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:#1E293B">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:#94A3B8">'+cat.name+(p.barcode?' · '+p.barcode:'')+'</div></div>'
+      +(p.preco?'<span style="font-size:12px;color:#64748B">R$ '+(+p.preco).toFixed(2).replace('.',',')+'</span>':'')
+      +'</div>';
+  }).join('');
+}
+
+function rtSelecionarProduto(prodId){
+  var p=products.find(function(x){return x.id===prodId;});
+  if(!p) return;
+  var cat=getCat(p.category);
+  document.getElementById('rt-prod-id').value=p.id;
+  document.getElementById('rt-sel-icon').textContent=cat.icon;
+  document.getElementById('rt-sel-nome').textContent=p.name;
+  document.getElementById('rt-sel-info').textContent=cat.name+(p.barcode?' · '+p.barcode:'');
+  document.getElementById('rt-selecionado').style.display='block';
+  document.getElementById('rt-resultados').innerHTML='';
+  document.getElementById('rt-busca').value='';
+  // Pré-preenche o custo com o preço do cadastro (editável)
+  document.getElementById('rt-custo-unit').value=p.preco||0;
+  rtAtualizaCusto();
+}
+
+function rtLimparSelecao(){
+  document.getElementById('rt-prod-id').value='';
+  document.getElementById('rt-selecionado').style.display='none';
+  document.getElementById('rt-custo-unit').value=0;
   rtAtualizaCusto();
 }
 
 function rtAtualizaCusto(){
   var qtd=+document.getElementById('rt-qtd').value||0;
   var custoUnit=+document.getElementById('rt-custo-unit').value||0;
-  var custo=qtd*custoUnit;
   var el=document.getElementById('rt-custo');
-  if(el) el.textContent='R$ '+custo.toFixed(2).replace('.',',');
+  if(el) el.textContent='R$ '+(qtd*custoUnit).toFixed(2).replace('.',',');
 }
 
 function salvarRetirada(){
-  var itemId=+document.getElementById('rt-item').value;
-  var it=consumoItens.find(function(x){return x.id===itemId;});
-  if(!it){notify('Selecione um item','warning');return;}
+  var prodId=+document.getElementById('rt-prod-id').value;
+  var p=products.find(function(x){return x.id===prodId;});
+  if(!p){notify('Busque e selecione um produto do cadastro','warning');return;}
   var qtd=+document.getElementById('rt-qtd').value||0;
   if(qtd<=0){notify('Informe a quantidade','warning');return;}
   var custoUnit=+document.getElementById('rt-custo-unit').value||0;
@@ -7512,9 +7732,9 @@ function salvarRetirada(){
 
   var ret={
     id:consumoRetNextId++,
-    itemId:it.id,
-    itemNome:it.nome,
-    unidade:it.unidade,
+    itemId:p.id,
+    itemNome:p.name,
+    unidade:'un',
     qtd:qtd,
     custoUnit:custoUnit,
     finalidade:finalidade,
@@ -7525,7 +7745,7 @@ function salvarRetirada(){
   saveConsumo();
   fecharRetirada();
   renderConsumo();
-  notify('Retirada registrada: '+formatQtd(qtd,it.unidade)+' de '+it.nome);
+  notify('Uso/consumo registrado: '+qtd+' x '+p.name);
 }
 
 function excluirRetirada(id){
