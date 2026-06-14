@@ -1506,6 +1506,15 @@ if('caches' in window){
           lu.unshift({usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true});
           window.USERS=lu;
         }));
+        u.push(onSnapshot(col('consumo_ret'),snap=>{
+          var recemSalvo=(Date.now()-(window._lastConsumoSave||0))<3000;
+          if(recemSalvo) return; // não sobrescreve mudança local recente
+          window.consumoRetiradas=snap.docs.map(d=>d.data()).sort((a,b)=>new Date(b.data)-new Date(a.data));
+          if(window.currentTab==='consumo'&&window.renderConsumo) window.renderConsumo();
+        }));
+        u.push(onSnapshot(col('consumo_itens'),snap=>{
+          window.consumoItens=snap.docs.map(d=>d.data());
+        }));
         return u;
       },
     };
@@ -3866,6 +3875,12 @@ function applyUser(user){
     pb.style.borderColor=getPlanoAtivo()==='pro'?'#E2E8F0':'#BBF7D0';
   }
   renderDashboard();
+
+  // Mostra o app e esconde o splash (essencial para F5 com sessão ativa)
+  var appEl=document.getElementById('app');
+  if(appEl){appEl.style.opacity='1';appEl.style.transition='opacity .3s';}
+  var splashEl=document.getElementById('splash');
+  if(splashEl){splashEl.style.opacity='0';setTimeout(function(){splashEl.style.display='none';},300);}
 }
 function applyPermissions(){
   if(!currentUser) return;
@@ -7804,6 +7819,7 @@ function salvarRetirada(){
     data:data,
   };
   consumoRetiradas.unshift(ret);
+  window._lastConsumoSave=Date.now();
   if(window._fb&&window._fbReady) window._fb.saveConsumoRetirada(ret).catch(function(){});
   saveConsumo();
   fecharRetirada();
@@ -7814,6 +7830,7 @@ function salvarRetirada(){
 function excluirRetirada(id){
   if(!confirm('Remover esta retirada?')) return;
   consumoRetiradas=consumoRetiradas.filter(function(x){return x.id!==id;});
+  window._lastConsumoSave=Date.now();
   // Persiste local
   try{ localStorage.setItem('pc_consumo_ret',JSON.stringify(consumoRetiradas)); }catch(e){}
   // Deleta do Firebase (não só re-salva os restantes)
@@ -8750,18 +8767,30 @@ function handleScanContinuous(code){
         var savedCodigo=sessionStorage.getItem('pc_codigo');
         if(savedCodigo) window._clienteCodigo=savedCodigo;
         clearAllData();
-        // Always wait for Firebase before restoring session
+        // Rede de segurança: se o Firebase demorar demais, abre mesmo assim
+        var _sessDone=false;
+        function _finishSess(){ if(_sessDone)return; _sessDone=true; applyUser(su); }
+        var _sessTimeout=setTimeout(function(){
+          console.warn('VenciFácil: loadAll demorou — abrindo com dados locais');
+          _finishSess();
+        }, 8000);
+        function _loadThenApply(){
+          // Cancela listeners antigos antes de recriar
+          if(window._fbUnsubs) window._fbUnsubs.forEach(function(u){try{u();}catch(e){}});
+          window._fb.loadAll()
+            .then(function(){
+              window._fbUnsubs=window._fb.setupListeners();
+              clearTimeout(_sessTimeout); _finishSess();
+            })
+            .catch(function(){ clearTimeout(_sessTimeout); _finishSess(); });
+        }
         if(window._fb&&window._fbReady){
-          window._fb.loadAll().then(function(){applyUser(su);}).catch(function(){applyUser(su);});
+          _loadThenApply();
         } else {
-          // Firebase not ready yet — wait for fbReady event
           window.addEventListener('fbReady',function onFbSess(e){
             window.removeEventListener('fbReady',onFbSess);
-            if(window._fb&&window._fbReady){
-              window._fb.loadAll().then(function(){applyUser(su);}).catch(function(){applyUser(su);});
-            } else {
-              applyUser(su);
-            }
+            if(window._fb&&window._fbReady){ _loadThenApply(); }
+            else { clearTimeout(_sessTimeout); _finishSess(); }
           });
         }
         return;
