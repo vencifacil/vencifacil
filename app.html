@@ -8216,6 +8216,7 @@ function renderProducao(){
   var html='';
   html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
     +'<button onclick="abrirNovoLancamento()" class="btn btn-primary" style="font-size:13px;padding:9px 16px">➕ Novo Lançamento</button>'
+    +'<button onclick="abrirAnaliseProducao()" class="btn btn-secondary" style="font-size:13px;padding:9px 16px">📊 Análise de Produção</button>'
     +'</div>';
 
   // Navegação de mês
@@ -8291,7 +8292,48 @@ function renderProducao(){
   }
 
   // ── LISTA DE LANÇAMENTOS ──
-  html+='<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B;margin-bottom:12px">Lançamentos</div>';
+  if(window._producaoView===undefined) window._producaoView='lista';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +'<div style="font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;color:#1E293B">Lançamentos</div>'
+    +'<div style="display:flex;background:#F1F5F9;border-radius:9px;padding:3px">'
+    +'<button onclick="window._producaoView=&quot;lista&quot;;renderProducao()" style="border:none;cursor:pointer;font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;'+(window._producaoView==='lista'?'background:#fff;color:#16A34A;box-shadow:0 1px 2px rgba(0,0,0,.08)':'background:none;color:#94A3B8')+'">Lista</button>'
+    +'<button onclick="window._producaoView=&quot;setor&quot;;renderProducao()" style="border:none;cursor:pointer;font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;'+(window._producaoView==='setor'?'background:#fff;color:#16A34A;box-shadow:0 1px 2px rgba(0,0,0,.08)':'background:none;color:#94A3B8')+'">Por setor</button>'
+    +'</div></div>';
+
+  if(window._producaoView==='setor'){
+    // Agrupa lançamentos por setor
+    var lancPorSetor={};
+    prodMes.forEach(function(p){
+      var s=p.setor||'Outros';
+      if(!lancPorSetor[s]) lancPorSetor[s]={lancs:[],receita:0,perda:0,resultado:0};
+      var t=calcProducaoTotais(p);
+      lancPorSetor[s].lancs.push(p);
+      lancPorSetor[s].receita+=t.receita; lancPorSetor[s].perda+=t.perdaValor; lancPorSetor[s].resultado+=t.resultado;
+    });
+    var setoresL=Object.keys(lancPorSetor).sort(function(a,b){return lancPorSetor[b].resultado-lancPorSetor[a].resultado;});
+    html+=setoresL.map(function(s){
+      var g=lancPorSetor[s]; var cor=corSetorProd(s); var key=s.replace(/[^a-zA-Z0-9]/g,'');
+      var lancsHtml=g.lancs.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(p){
+        var t=calcProducaoTotais(p); var d=new Date(p.data);
+        var totalVend=t.vendido+t.rebaixa; var taxa=t.produzido>0?Math.round(totalVend/t.produzido*100):0;
+        return '<div onclick="abrirDetalheProducao('+p.id+')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #F8FAFC;cursor:pointer">'
+          +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;color:#1E293B;font-weight:600">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+'</div>'
+          +'<div style="font-size:11px;color:#94A3B8">'+(p.itens?p.itens.length:0)+' itens · '+taxa+'% aproveitado</div></div>'
+          +'<div style="font-size:13px;font-weight:700;color:'+(t.resultado>=0?'#16A34A':'#DC2626')+'">R$ '+t.resultado.toFixed(2).replace('.',',')+'</div></div>';
+      }).join('');
+      return '<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden;border-left:4px solid '+cor+'">'
+        +'<div onclick="toggleSetorProd(&quot;'+key+'&quot;)" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:'+cor+'08">'
+        +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px;color:#1E293B">'+s+'</div>'
+        +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+g.lancs.length+' lançamento'+(g.lancs.length!==1?'s':'')+(g.perda>0?' · perda R$ '+g.perda.toFixed(2).replace('.',','):'')+'</div></div>'
+        +'<div style="font-size:16px;font-weight:800;color:'+(g.resultado>=0?'#16A34A':'#DC2626')+'">R$ '+g.resultado.toFixed(2).replace('.',',')+'</div>'
+        +'<span style="color:#94A3B8;font-size:13px" id="arrowprod-'+key+'">▼</span></div>'
+        +'<div id="lancsetor-'+key+'" style="display:none;padding:4px 16px 12px">'+lancsHtml+'</div>'
+        +'</div>';
+    }).join('');
+    el.innerHTML=html;
+    return;
+  }
+
   html+=prodMes.map(function(p){
     var t=calcProducaoTotais(p);
     var totalVend=t.vendido+t.rebaixa;
@@ -9026,6 +9068,226 @@ function limparDuplicados(){
   notify('🧹 '+duplicados.length+' duplicados removidos!');
   if(currentTab==='products') renderProducts();
   renderSettings();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ANÁLISE DE PRODUÇÃO — por setor, comparação, exportação PDF
+// ══════════════════════════════════════════════════════════════════════
+function abrirAnaliseProducao(){
+  var hoje=new Date();
+  var ref=new Date(hoje.getFullYear(), hoje.getMonth()+(window._producaoMes||0), 1);
+  var inicio=new Date(ref.getFullYear(), ref.getMonth(), 1);
+  var fim=new Date(ref.getFullYear(), ref.getMonth()+1, 0);
+  var html='<div class="overlay open" id="modal-analise-prod" style="z-index:920">'
+    +'<div class="modal" style="width:min(640px,96vw);max-height:92vh;overflow-y:auto">'
+    +'<div class="modal-hdr"><div class="modal-title">📊 Análise de Produção</div>'
+    +'<button class="close-btn" onclick="fecharAnaliseProducao()">✕</button></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
+    +'<div class="field"><label>De</label><input type="date" id="ap-de" value="'+inicio.toISOString().split('T')[0]+'" onchange="renderAnaliseProducao()" style="width:100%;padding:10px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'<div class="field"><label>Até</label><input type="date" id="ap-ate" value="'+fim.toISOString().split('T')[0]+'" onchange="renderAnaliseProducao()" style="width:100%;padding:10px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+    +'</div>'
+    +'<div id="ap-conteudo"></div>'
+    +'<button onclick="exportarProducaoPDF()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:14px">📄 Exportar Relatório PDF</button>'
+    +'</div></div>';
+  var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d.firstElementChild);
+  renderAnaliseProducao();
+}
+
+function fecharAnaliseProducao(){var m=document.getElementById('modal-analise-prod');if(m)m.remove();}
+
+// Agrega dados de produção por setor no período
+function getProducaoData(){
+  var de=document.getElementById('ap-de').value;
+  var ate=document.getElementById('ap-ate').value;
+  var dDe=de?new Date(de+'T00:00:00'):new Date(0);
+  var dAte=ate?new Date(ate+'T23:59:59'):new Date();
+  var lancs=producoes.filter(function(p){
+    var d=new Date(p.data); return d>=dDe && d<=dAte;
+  });
+  var porSetor={};
+  var porProduto={};
+  lancs.forEach(function(p){
+    var s=p.setor||'Outros';
+    if(!porSetor[s]) porSetor[s]={produzido:0,vendido:0,rebaixa:0,perda:0,receita:0,custoTotal:0,perdaValor:0,resultado:0,n:0};
+    porSetor[s].n++;
+    (p.itens||[]).forEach(function(it){
+      var ci=calcItemProducao(it);
+      var g=porSetor[s];
+      g.produzido+=ci.produzido; g.vendido+=ci.vendido; g.rebaixa+=ci.rebaixa;
+      g.perda+=ci.perda; g.receita+=ci.receita; g.custoTotal+=ci.custoTotal;
+      g.perdaValor+=ci.perdaValor; g.resultado+=ci.resultado;
+      if(!porProduto[it.nome]) porProduto[it.nome]={produzido:0,vendido:0,perda:0,perdaValor:0,receita:0,setor:s};
+      var pp=porProduto[it.nome];
+      pp.produzido+=ci.produzido; pp.vendido+=ci.vendido; pp.perda+=ci.perda;
+      pp.perdaValor+=ci.perdaValor; pp.receita+=ci.receita;
+    });
+  });
+  return {porSetor:porSetor, porProduto:porProduto, de:de, ate:ate, total:lancs.length};
+}
+
+function renderAnaliseProducao(){
+  var el=document.getElementById('ap-conteudo');
+  if(!el) return;
+  var data=getProducaoData();
+  var setores=Object.keys(data.porSetor);
+  if(setores.length===0){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8"><div style="font-size:40px;margin-bottom:10px">📊</div>Nenhum lançamento no período selecionado.</div>';
+    return;
+  }
+  setores.sort(function(a,b){return data.porSetor[b].receita-data.porSetor[a].receita;});
+
+  // Totais gerais
+  var tot={produzido:0,vendido:0,rebaixa:0,perda:0,receita:0,custoTotal:0,perdaValor:0,resultado:0};
+  setores.forEach(function(s){
+    var g=data.porSetor[s];
+    tot.produzido+=g.produzido; tot.vendido+=g.vendido; tot.rebaixa+=g.rebaixa;
+    tot.perda+=g.perda; tot.receita+=g.receita; tot.custoTotal+=g.custoTotal;
+    tot.perdaValor+=g.perdaValor; tot.resultado+=g.resultado;
+  });
+  var taxaGeral=tot.produzido>0?Math.round((tot.vendido+tot.rebaixa)/tot.produzido*100):0;
+
+  var html='';
+
+  // Cards de totais
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+    +'<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:13px"><div style="font-size:10.5px;color:#16A34A;font-weight:700;text-transform:uppercase">Receita</div><div style="font-size:19px;font-weight:800;color:#166534">R$ '+tot.receita.toFixed(2).replace('.',',')+'</div></div>'
+    +'<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:13px"><div style="font-size:10.5px;color:#DC2626;font-weight:700;text-transform:uppercase">Perda</div><div style="font-size:19px;font-weight:800;color:#B91C1C">R$ '+tot.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
+    +'</div>';
+  html+='<div style="background:linear-gradient(135deg,#16A34A,#15803D);border-radius:14px;padding:16px;margin-bottom:16px;color:#fff">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:11px;opacity:.85">Taxa de aproveitamento geral</div><div style="font-size:30px;font-weight:800">'+taxaGeral+'%</div></div>'
+    +'<div style="text-align:right"><div style="font-size:11px;opacity:.85">Resultado</div><div style="font-size:20px;font-weight:800">R$ '+tot.resultado.toFixed(2).replace('.',',')+'</div></div>'
+    +'</div></div>';
+
+  // Gráfico de barras comparativo por setor (receita + perda)
+  var maxRec=Math.max.apply(null,setores.map(function(s){return data.porSetor[s].receita;}));
+  html+='<div class="card" style="padding:16px;margin-bottom:14px">'
+    +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:14px">Comparação entre setores</div>'
+    +setores.map(function(s){
+      var g=data.porSetor[s];
+      var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+      var largRec=maxRec>0?Math.round(g.receita/maxRec*100):0;
+      var cor=corSetorProd(s);
+      return '<div style="margin-bottom:14px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+        +'<span style="font-size:13px;color:#1E293B;font-weight:700">'+s+'</span>'
+        +'<span style="font-size:11px;color:#64748B">'+taxa+'% aproveitado</span>'
+        +'</div>'
+        +'<div style="background:#F1F5F9;border-radius:6px;height:10px;overflow:hidden;margin-bottom:4px"><div style="background:'+cor+';height:100%;width:'+largRec+'%;border-radius:6px"></div></div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px">'
+        +'<span style="color:#16A34A;font-weight:600">Receita R$ '+g.receita.toFixed(2).replace('.',',')+'</span>'
+        +'<span style="color:#DC2626;font-weight:600">Perda R$ '+g.perdaValor.toFixed(2).replace('.',',')+'</span>'
+        +'</div></div>';
+    }).join('')
+    +'</div>';
+
+  // Detalhe por setor (cards)
+  html+=setores.map(function(s){
+    var g=data.porSetor[s];
+    var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+    var taxaPerda=g.produzido>0?Math.round(g.perda/g.produzido*100):0;
+    var cor=corSetorProd(s);
+    return '<div class="card" style="margin-bottom:10px;padding:14px 16px;border-left:4px solid '+cor+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+s+'</div>'
+      +'<div style="font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;background:'+(taxa>=90?'#F0FDF4':taxa>=75?'#FFF7ED':'#FEF2F2')+';color:'+(taxa>=90?'#16A34A':taxa>=75?'#B45309':'#DC2626')+'">'+taxa+'% aproveitado</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
+      +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">RECEITA</div><div style="font-size:13px;font-weight:700;color:#16A34A">R$ '+g.receita.toFixed(2).replace('.',',')+'</div></div>'
+      +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">CUSTO</div><div style="font-size:13px;font-weight:700;color:#64748B">R$ '+g.custoTotal.toFixed(2).replace('.',',')+'</div></div>'
+      +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">PERDA</div><div style="font-size:13px;font-weight:700;color:#DC2626">R$ '+g.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:#94A3B8;margin-top:8px">Produziu '+fmtNum(g.produzido)+' · Vendeu '+fmtNum(g.vendido)+(g.rebaixa>0?' · Rebaixa '+fmtNum(g.rebaixa):'')+' · Perdeu '+fmtNum(g.perda)+' ('+taxaPerda+'%)</div>'
+      +'</div>';
+  }).join('');
+
+  // Ranking de produtos que mais desperdiçam
+  var prodPerda=Object.keys(data.porProduto)
+    .filter(function(n){return data.porProduto[n].perda>0;})
+    .sort(function(a,b){return data.porProduto[b].perdaValor-data.porProduto[a].perdaValor;})
+    .slice(0,6);
+  if(prodPerda.length){
+    html+='<div class="card" style="padding:16px;margin-top:4px">'
+      +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:12px">⚠️ Produtos que mais desperdiçam</div>'
+      +prodPerda.map(function(nome,i){
+        var p=data.porProduto[nome];
+        var pct=p.produzido>0?Math.round(p.perda/p.produzido*100):0;
+        return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0'+(i<prodPerda.length-1?';border-bottom:1px solid #F8FAFC':'')+'">'
+          +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;color:#1E293B;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nome+'</div>'
+          +'<div style="font-size:10.5px;color:#94A3B8">'+p.setor+' · '+fmtNum(p.perda)+' de '+fmtNum(p.produzido)+'</div></div>'
+          +'<div style="text-align:right"><div style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;background:'+(pct>=20?'#FEF2F2':'#FFF7ED')+';color:'+(pct>=20?'#DC2626':'#B45309')+'">'+pct+'%</div>'
+          +'<div style="font-size:11.5px;color:#DC2626;font-weight:600;margin-top:1px">R$ '+p.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
+          +'</div>';
+      }).join('')
+      +'</div>';
+  }
+
+  el.innerHTML=html;
+}
+
+function exportarProducaoPDF(){
+  if(!window.jspdf){loadJsPDF(function(){exportarProducaoPDF();});return;}
+  var data=getProducaoData();
+  var setores=Object.keys(data.porSetor).sort(function(a,b){return data.porSetor[b].receita-data.porSetor[a].receita;});
+  if(setores.length===0){notify('Nenhum dado para exportar','warning');return;}
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+
+  var tot={produzido:0,vendido:0,rebaixa:0,perda:0,receita:0,custoTotal:0,perdaValor:0,resultado:0};
+  setores.forEach(function(s){var g=data.porSetor[s];tot.produzido+=g.produzido;tot.vendido+=g.vendido;tot.rebaixa+=g.rebaixa;tot.perda+=g.perda;tot.receita+=g.receita;tot.custoTotal+=g.custoTotal;tot.perdaValor+=g.perdaValor;tot.resultado+=g.resultado;});
+  var taxaGeral=tot.produzido>0?Math.round((tot.vendido+tot.rebaixa)/tot.produzido*100):0;
+
+  doc.setFontSize(16);doc.setTextColor(22,163,74);
+  doc.text(pdfTxt('Relatorio de Producao por Setor'),14,18);
+  doc.setFontSize(10);doc.setTextColor(100,116,139);
+  doc.text(pdfTxt('Periodo: '+(data.de?data.de.split('-').reverse().join('/'):'inicio')+' a '+(data.ate?data.ate.split('-').reverse().join('/'):'hoje')),14,25);
+  doc.setFontSize(11);doc.setTextColor(15,23,42);
+  doc.text(pdfTxt('Receita: R$ '+tot.receita.toFixed(2).replace('.',',')+'   |   Perda: R$ '+tot.perdaValor.toFixed(2).replace('.',',')+'   |   Aproveitamento: '+taxaGeral+'%'),14,33);
+  doc.text(pdfTxt('Resultado: R$ '+tot.resultado.toFixed(2).replace('.',',')),14,40);
+
+  // Tabela por setor
+  var rows=setores.map(function(s){
+    var g=data.porSetor[s];
+    var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+    return [pdfTxt(s), 'R$ '+g.receita.toFixed(2).replace('.',','), 'R$ '+g.custoTotal.toFixed(2).replace('.',','), 'R$ '+g.perdaValor.toFixed(2).replace('.',','), taxa+'%'];
+  });
+  doc.autoTable({
+    startY:46,
+    head:[[pdfTxt('Setor'),pdfTxt('Receita'),pdfTxt('Custo'),pdfTxt('Perda'),pdfTxt('Aprov.')]],
+    body:rows, theme:'striped',
+    headStyles:{fillColor:[22,163,74],textColor:255,fontSize:10},
+    bodyStyles:{fontSize:9}, columnStyles:{1:{fontStyle:'bold'}}
+  });
+
+  // Produtos que mais desperdiçam
+  var prodPerda=Object.keys(data.porProduto).filter(function(n){return data.porProduto[n].perda>0;})
+    .sort(function(a,b){return data.porProduto[b].perdaValor-data.porProduto[a].perdaValor;}).slice(0,15);
+  if(prodPerda.length){
+    var y=doc.lastAutoTable.finalY+10;
+    doc.setFontSize(12);doc.setTextColor(220,38,38);
+    doc.text(pdfTxt('Produtos que mais desperdicam'),14,y);
+    var pr=prodPerda.map(function(nome){
+      var p=data.porProduto[nome];
+      var pct=p.produzido>0?Math.round(p.perda/p.produzido*100):0;
+      return [pdfTxt(nome), pdfTxt(p.setor), fmtNum(p.perda).toString(), pct+'%', 'R$ '+p.perdaValor.toFixed(2).replace('.',',')];
+    });
+    doc.autoTable({
+      startY:y+3,
+      head:[[pdfTxt('Produto'),pdfTxt('Setor'),pdfTxt('Perda'),'%','Valor']],
+      body:pr, theme:'grid',
+      headStyles:{fillColor:[100,116,139],textColor:255,fontSize:9},
+      bodyStyles:{fontSize:8}
+    });
+  }
+
+  doc.save('producao-'+(data.de||'inicio')+'.pdf');
+  notify('Relatório PDF gerado! 📄');
+}
+
+function toggleSetorProd(key){
+  var el=document.getElementById('lancsetor-'+key);
+  var arrow=document.getElementById('arrowprod-'+key);
+  if(el){var open=el.style.display!=='none';el.style.display=open?'none':'block';if(arrow)arrow.textContent=open?'▼':'▲';}
 }
 
 function updateBadge(){
