@@ -2312,6 +2312,8 @@ function recalcFlags(){
   (window.products||[]).forEach(function(p){
     p.emTroca   = (window.trocas||[]).some(function(t){return t.prodId===p.id&&(t.status==='pendente'||t.status==='enviado');});
     p.emRebaixa = (window.rebaixas||[]).some(function(r){return r.prodId===p.id&&r.status==='ativa';});
+    // Normaliza contradição: se tem validade, não pode ser "só cadastro" (senão fica invisível)
+    if(p.expiry && p.soCadastro) p.soCadastro=false;
   });
 }
 
@@ -6851,18 +6853,24 @@ function confirmarImportNFe(){
     } else {
       // Create new product
       var novo={
-        id:nextId++,
+        id:uniqueId(),
+        codigo:it.codigo||'',
         name:it.name,
         barcode:it.barcode,
         expiry:it.expiry||'',
         quantity:it.qty,
         category:it.category||0,
         location:it.location||0,
-        custo:it.custo,
+        preco:it.custo||0,
+        minStock:5,
         lote:'',
+        fornecedor:'',
+        foto:'',
+        soCadastro:false,
         criado:new Date().toISOString(),
       };
       products.push(novo);
+      window._lastLocalSave=Date.now();
       fbSaveProduct(novo);
       added++;
     }
@@ -7880,7 +7888,7 @@ function rtBuscarProduto(){
   var resEl=document.getElementById('rt-resultados');
   if(!termo){ resEl.innerHTML=''; return; }
   var matches=products.filter(function(p){
-    return p.name.toLowerCase().indexOf(termo)>=0 || (p.barcode&&p.barcode.indexOf(termo)>=0);
+    return p.name.toLowerCase().indexOf(termo)>=0 || (p.barcode&&p.barcode.indexOf(termo)>=0) || (p.codigo&&p.codigo.indexOf(termo)>=0);
   }).slice(0,8);
   if(matches.length===0){
     resEl.innerHTML='<div style="padding:10px;font-size:12.5px;color:#94A3B8;text-align:center">Nenhum produto encontrado no cadastro</div>';
@@ -9922,6 +9930,7 @@ function confirmarEntrada(prodId){
     if(!expiry){notify('Informe a data de validade','warning');return;}
     p.quantity+=qty;
     p.expiry=expiry;
+    p.soCadastro=false;
     if(lote) p.lote=lote;
     if(preco) p.preco=preco;
     notify('Recebido: +'+qty+' un. de '+p.name);
