@@ -2169,10 +2169,10 @@ if('caches' in window){
         <div class="filters">
           <div class="search-wrap">
             <span class="search-icon" style="font-size:14px">🔍</span>
-            <input type="text" id="search-input" placeholder="Buscar por nome ou código…" oninput="window._prodPage=0;renderProducts()"/>
+            <input type="text" id="search-input" placeholder="Buscar por nome ou código…" oninput="window._prodShown=20;renderProducts()"/>
           </div>
-          <select id="filter-cat" onchange="window._prodPage=0;renderProducts()"><option value="0">Todas categorias</option></select>
-          <select id="filter-status" onchange="window._prodPage=0;renderProducts()">
+          <select id="filter-cat" onchange="window._prodShown=20;renderProducts()"><option value="0">Todas categorias</option></select>
+          <select id="filter-status" onchange="window._prodShown=20;renderProducts()">
             <option value="all">Todos os status</option>
             <option value="expired">Vencidos</option>
             <option value="critical">Críticos (≤3d)</option>
@@ -2180,7 +2180,7 @@ if('caches' in window){
             <option value="soon">Próximos (≤30d)</option>
             <option value="ok">Em dia</option>
           </select>
-          <select id="filter-loc" onchange="window._prodPage=0;renderProducts()"><option value="0">Todos os locais</option></select>
+          <select id="filter-loc" onchange="window._prodShown=20;renderProducts()"><option value="0">Todos os locais</option></select>
         </div>
         <div class="table-wrap">
           <table>
@@ -2356,6 +2356,7 @@ function setTab(tab){
   if(tab==='trocas')renderTrocas();
   if(tab==='rebaixas')renderRebaixas();
   if(tab==='consumo')renderConsumo();
+  if(tab==='products'){setupInfiniteScroll();}
   if(tab==='producao')renderProducao();
   if(window.checkAIBadge) checkAIBadge();
 }
@@ -2782,13 +2783,12 @@ function renderProducts(){
   }).sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
   var tbody=document.getElementById('prod-body');
   var empty=document.getElementById('prod-empty');
-  // Pagination
-  var PSIZE=20;
-  if(window._prodPage===undefined) window._prodPage=0;
-  var totPg=Math.max(1,Math.ceil(list.length/PSIZE));
-  if(window._prodPage>=totPg) window._prodPage=totPg-1;
-  var pg=window._prodPage;
-  var pageList=list.slice(pg*PSIZE,(pg+1)*PSIZE);
+  // Rolagem com carregamento progressivo (infinite scroll)
+  var BATCH=20;
+  if(window._prodShown===undefined||window._prodShown<BATCH) window._prodShown=BATCH;
+  // Não mostrar mais do que existe
+  if(window._prodShown>list.length) window._prodShown=Math.max(BATCH,Math.ceil(list.length/BATCH)*BATCH);
+  var pageList=list.slice(0,window._prodShown);
   if(!list.length){tbody.innerHTML='';empty.style.display='';}
   else{
     empty.style.display='none';
@@ -2809,13 +2809,17 @@ function renderProducts(){
     }).join('');
     var pagEl=document.getElementById('prod-pagination');
     if(pagEl){
-      if(totPg<=1){ pagEl.innerHTML=''; }
-      else{
-        pagEl.innerHTML='<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;flex-wrap:wrap">'
-          +'<span style="font-size:12px;color:#64748B">'+list.length+' produtos &middot; Pág '+(pg+1)+'/'+totPg+'</span>'
-          +(pg>0?'<button onclick="window._prodPage='+(pg-1)+';renderProducts()" class="btn btn-secondary" style="padding:5px 12px;font-size:12px">&larr; Anterior</button>':'')
-          +(pg<totPg-1?'<button onclick="window._prodPage='+(pg+1)+';renderProducts()" class="btn btn-primary" style="padding:5px 12px;font-size:12px">Próxima &rarr;</button>':'')
+      var faltam=list.length-pageList.length;
+      if(faltam>0){
+        // Botão de carregar mais (fallback) + carregamento automático ao rolar
+        pagEl.innerHTML='<div style="text-align:center;padding:14px">'
+          +'<div style="font-size:12px;color:#94A3B8;margin-bottom:8px">Mostrando '+pageList.length+' de '+list.length+' produtos</div>'
+          +'<button onclick="window._prodShown+=20;renderProducts()" class="btn btn-secondary" style="padding:7px 18px;font-size:12.5px">Carregar mais</button>'
           +'</div>';
+      } else if(list.length>20){
+        pagEl.innerHTML='<div style="text-align:center;padding:12px;font-size:12px;color:#CBD5E1">'+list.length+' produtos · fim da lista</div>';
+      } else {
+        pagEl.innerHTML='';
       }
     }
   }
@@ -6889,7 +6893,7 @@ function clearAllData(){
   window.products=[];window.categories=[];window.locations=[];
   window.historico=[];window.trocas=[];window.rebaixas=[];window.consumoItens=[];window.consumoRetiradas=[]; window.producoes=[];
   window.fornecedores=[];window.nextId=1;window.trocaNextId=1;window.histNextId=1;
-  window._prodPage=0;
+  window._prodShown=20;
   window.USERS=[{usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true}];
   window.consumoItemNextId=1;window.consumoRetNextId=1;window.producaoNextId=1;window.rebaixaNextId=1;
   try{
@@ -9296,6 +9300,37 @@ function toggleSetorProd(key){
   var el=document.getElementById('lancsetor-'+key);
   var arrow=document.getElementById('arrowprod-'+key);
   if(el){var open=el.style.display!=='none';el.style.display=open?'none':'block';if(arrow)arrow.textContent=open?'▼':'▲';}
+}
+
+// Carregamento automático ao rolar (infinite scroll) para Produtos a Vencer
+function setupInfiniteScroll(){
+  if(window._infiniteScrollSet) return;
+  window._infiniteScrollSet=true;
+  function onScroll(){
+    if(window.currentTab!=='products') return;
+    var pagEl=document.getElementById('prod-pagination');
+    if(!pagEl) return;
+    // Detecta se o botão "carregar mais" está visível (perto do fim)
+    var rect=pagEl.getBoundingClientRect();
+    var vh=window.innerHeight||document.documentElement.clientHeight;
+    if(rect.top < vh+200){
+      // Chegou perto do fim — carrega mais se houver
+      var c=document.getElementById('prod-count');
+      if(window._prodShownLast!==window._prodShown){
+        // evita loop: só carrega se ainda há itens não mostrados
+      }
+      var btn=pagEl.querySelector('button');
+      if(btn && btn.textContent.indexOf('Carregar')>=0){
+        window._prodShown=(window._prodShown||20)+20;
+        window._prodShownLast=window._prodShown;
+        renderProducts();
+      }
+    }
+  }
+  // Escuta tanto window quanto #content (cobre os dois modos de rolagem)
+  window.addEventListener('scroll', onScroll, {passive:true});
+  var ct=document.getElementById('content');
+  if(ct) ct.addEventListener('scroll', onScroll, {passive:true});
 }
 
 function updateBadge(){
