@@ -8756,38 +8756,50 @@ function cruzarVendas(linhas){
         if(linhas[j].indexOf(it.barcode)>=0){ melhorLinha=linhas[j]; break; }
       }
     }
-    // 3) Tenta por nome (primeiras palavras significativas)
+    // 3) Tenta por nome — escolhe a linha com MAIS palavras em comum (melhor match)
     if(!melhorLinha){
       var nomeBusca=it.nome.toUpperCase().replace(/[^A-Z0-9 ]/g,'').trim();
-      var palavras=nomeBusca.split(' ').filter(function(p){return p.length>=3;}).slice(0,2);
+      var palavras=nomeBusca.split(' ').filter(function(p){return p.length>=3;});
       if(palavras.length){
+        var melhorScore=0, melhorIdx=-1;
         for(var k=0;k<linhas.length;k++){
           var lnUp=linhas[k].toUpperCase();
-          if(palavras.every(function(p){return lnUp.indexOf(p)>=0;})){ melhorLinha=linhas[k]; break; }
+          // Só considera linhas que parecem ser de produto (têm números no formato R$)
+          if(!/\d{1,3}(?:\.\d{3})*,\d+/.test(lnUp)) continue;
+          var score=palavras.filter(function(p){return lnUp.indexOf(p)>=0;}).length;
+          // Exige que TODAS as palavras batam para considerar match válido
+          if(score===palavras.length && score>melhorScore){
+            melhorScore=score; melhorIdx=k;
+          }
         }
+        if(melhorIdx>=0) melhorLinha=linhas[melhorIdx];
       }
     }
 
     if(melhorLinha){
       // Formato do relatório: CODIGO BARRAS DESCRICAO  QTD  CUSTO_TOTAL  VENDA_TOTAL  LUCRO
-      // Todos os valores em formato brasileiro: 2.662,000 / 11.120,38
-      // Pega só os números com vírgula decimal (formato brasileiro)
-      var matches=melhorLinha.match(/\d{1,3}(?:\.\d{3})*,\d+/g)||[];
+      // Todos em formato brasileiro: 2.662,000 / 11.120,38
+      var matches=melhorLinha.match(/-?\d{1,3}(?:\.\d{3})*,\d+/g)||[];
       if(matches.length>=3){
-        // Os últimos números são: QTD, CUSTO(total), VENDA(total)[, LUCRO]
-        // Se tem 4+, os 4 últimos são qtd/custo/venda/lucro. Se tem 3, qtd/custo/venda.
+        // Os 4 últimos números (ou 3) são QTD, CUSTO_total, VENDA_total[, LUCRO]
         var ult = matches.length>=4 ? matches.slice(-4) : matches.slice(-3);
         function pBR(s){return parseFloat(s.replace(/\./g,'').replace(',','.'));}
-        var qtd=pBR(ult[0]);
+        var qtdPDF=pBR(ult[0]);
         var custoTotal=pBR(ult[1]);
         var vendaTotal=pBR(ult[2]);
-        it.vendido=qtd;
-        if(qtd>0){
-          it.custo=Math.round(custoTotal/qtd*100)/100;   // custo unitário
-          it.preco=Math.round(vendaTotal/qtd*100)/100;   // preço de venda unitário
+        // Custo e preço UNITÁRIOS vêm do PDF
+        if(qtdPDF>0){
+          it.custo=Math.round(custoTotal/qtdPDF*100)/100;
+          it.preco=Math.round(vendaTotal/qtdPDF*100)/100;
         }
+        // Vendido = quantidade do PDF, mas nunca maior que o produzido (se já informado)
+        var vendidoFinal=qtdPDF;
+        if(it.produzido>0 && vendidoFinal>it.produzido) vendidoFinal=it.produzido;
+        it.vendido=vendidoFinal;
+        // Guarda a linha cruzada para conferência
+        it._linhaPDF=melhorLinha;
         encontrados++;
-        detalhes.push({nome:it.nome, qtd:qtd, ok:true});
+        detalhes.push({nome:it.nome, qtd:vendidoFinal, qtdPDF:qtdPDF, custo:it.custo, linha:melhorLinha, ok:true, limitado:(vendidoFinal!==qtdPDF)});
       } else {
         detalhes.push({nome:it.nome, ok:false});
       }
@@ -8801,7 +8813,14 @@ function cruzarVendas(linhas){
     +'<div style="font-weight:700;font-size:14px;color:'+(encontrados>0?'#166534':'#B91C1C')+';margin-bottom:8px">'
     +(encontrados>0?'✅ '+encontrados+' de '+_prodAtual.itens.length+' itens cruzados':'❌ Nenhum item encontrado no PDF')+'</div>'
     +'<div style="font-size:11.5px;color:#64748B;line-height:1.7">'
-    +detalhes.map(function(d){return (d.ok?'✓ ':'✗ ')+d.nome+(d.ok?' ('+fmtNum(d.qtd)+' vend.)':' (não encontrado)');}).join('<br>')
+    +detalhes.map(function(d){
+        if(!d.ok) return '<div style="padding:4px 0;color:#DC2626">✗ '+d.nome+' — não encontrado no PDF</div>';
+        var aviso=d.limitado?' <span style="color:#B45309">(ajustado: PDF tinha '+fmtNum(d.qtdPDF)+', limitado ao produzido)</span>':'';
+        return '<div style="padding:5px 0;border-bottom:1px solid #ECFDF5">'
+          +'<div style="color:#166534;font-weight:600">✓ '+d.nome+'</div>'
+          +'<div style="font-size:10.5px;color:#64748B">Vendido: '+fmtNum(d.qtd)+' · Custo: R$'+(d.custo||0).toFixed(2)+aviso+'</div>'
+          +'</div>';
+      }).join('')
     +'</div></div>'
     +'<button onclick="aplicarVendasImportadas()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Aplicar e fechar</button>';
 }
