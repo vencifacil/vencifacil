@@ -2140,7 +2140,6 @@ if('caches' in window){
       <div id="topbar-user" onclick="showUserMenu()"><div class="user-avatar" id="user-avatar" style="background:#16A34A">D</div><span id="user-name-top" style="font-size:13px;font-weight:600;color:#334155">Administrador</span><span style="font-size:10px;color:#94A3B8">▾</span></div>
       <div class="topbar-actions">
         <button class="btn btn-secondary btn-settings" onclick="openSettings()" title="Configurações" style="padding:9px 13px">⚙️</button>
-        <button class="btn btn-primary btn-new-prod" onclick="abrirAddVencer()">+ Adicionar Produto a Vencer</button>
         <button class="btn btn-primary btn-scan-mob" onclick="openScanner()">📷<span class="scan-label"> Escanear</span></button>
       </div>
     </div>
@@ -2162,7 +2161,7 @@ if('caches' in window){
       <!-- PRODUCTS -->
       <div class="tab-content" id="tab-products">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button onclick="openNewProd()" class="btn btn-primary" style="font-size:13px;padding:7px 14px;display:flex;align-items:center;gap:6px">
+          <button onclick="abrirAddVencer()" class="btn btn-primary" style="font-size:13px;padding:7px 14px;display:flex;align-items:center;gap:6px">
             ➕ Entrada Manual
           </button>
           <button onclick="abrirImportNFe()" class="btn btn-secondary" style="font-size:13px;padding:7px 14px;display:flex;align-items:center;gap:6px">
@@ -8085,7 +8084,10 @@ function avBuscar(){
       || (p.codigo&&p.codigo.indexOf(termo)>=0);
   }).slice(0,10);
   if(matches.length===0){
-    resEl.innerHTML='<div style="padding:10px;font-size:12.5px;color:#94A3B8;text-align:center">Nenhum produto no cadastro. Use "Importar Produtos" nas Configurações.</div>';
+    resEl.innerHTML='<div style="padding:14px;text-align:center">'
+      +'<div style="font-size:12.5px;color:#94A3B8;margin-bottom:10px">Nenhum produto encontrado na base</div>'
+      +'<button onclick="fecharAddVencer();openNewProd()" class="btn btn-secondary" style="font-size:12.5px;padding:7px 14px">+ Cadastrar produto novo</button>'
+      +'</div>';
     return;
   }
   resEl.innerHTML=matches.map(function(p){
