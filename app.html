@@ -8769,35 +8769,25 @@ function cruzarVendas(linhas){
     }
 
     if(melhorLinha){
-      // Formato: COD_INTERNO COD_BARRAS DESCRICAO QTD CUSTO VENDA
-      // Remove o código interno e o código de barras do começo (números longos sem vírgula)
-      var linhaLimpa=melhorLinha;
-      // Remove código interno do início
-      if(it.codigo) linhaLimpa=linhaLimpa.replace(new RegExp('^\\s*'+it.codigo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s+'),'');
-      // Remove código de barras (sequência de 8+ dígitos sem vírgula)
-      linhaLimpa=linhaLimpa.replace(/\b\d{8,}\b/,'');
-      // Agora pega TODOS os números (inteiros ou decimais) que sobraram
-      var nums=linhaLimpa.match(/-?\d{1,3}(?:\.\d{3})*(?:,\d+)?|-?\d+(?:,\d+)?/g)||[];
-      // Filtra os que parecem valores (remove restos de descrição que viraram número isolado)
-      var valores=nums.map(function(n){return parseFloat(n.replace(/\./g,'').replace(',','.'));}).filter(function(v){return !isNaN(v);});
-      if(valores.length>=3){
-        // Os 3 últimos números são: QTD, CUSTO(unit), VENDA(total)
-        var n3=valores.slice(-3);
-        var qtd=n3[0];
-        var custoUnit=n3[1];
-        var vendaTotal=n3[2];
+      // Formato do relatório: CODIGO BARRAS DESCRICAO  QTD  CUSTO_TOTAL  VENDA_TOTAL  LUCRO
+      // Todos os valores em formato brasileiro: 2.662,000 / 11.120,38
+      // Pega só os números com vírgula decimal (formato brasileiro)
+      var matches=melhorLinha.match(/\d{1,3}(?:\.\d{3})*,\d+/g)||[];
+      if(matches.length>=3){
+        // Os últimos números são: QTD, CUSTO(total), VENDA(total)[, LUCRO]
+        // Se tem 4+, os 4 últimos são qtd/custo/venda/lucro. Se tem 3, qtd/custo/venda.
+        var ult = matches.length>=4 ? matches.slice(-4) : matches.slice(-3);
+        function pBR(s){return parseFloat(s.replace(/\./g,'').replace(',','.'));}
+        var qtd=pBR(ult[0]);
+        var custoTotal=pBR(ult[1]);
+        var vendaTotal=pBR(ult[2]);
         it.vendido=qtd;
         if(qtd>0){
-          it.custo=Math.round(custoUnit*100)/100;
-          it.preco=Math.round(vendaTotal/qtd*100)/100; // preço unitário de venda
+          it.custo=Math.round(custoTotal/qtd*100)/100;   // custo unitário
+          it.preco=Math.round(vendaTotal/qtd*100)/100;   // preço de venda unitário
         }
         encontrados++;
         detalhes.push({nome:it.nome, qtd:qtd, ok:true});
-      } else if(valores.length>=1){
-        // Só achou a quantidade
-        it.vendido=valores[valores.length-1];
-        encontrados++;
-        detalhes.push({nome:it.nome, qtd:it.vendido, ok:true});
       } else {
         detalhes.push({nome:it.nome, ok:false});
       }
