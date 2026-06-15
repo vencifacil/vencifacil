@@ -2069,6 +2069,9 @@ if('caches' in window){
     <button class="nav-item" id="nav-producao" onclick="setTab(&quot;producao&quot;)">
       <div class="nav-icon-wrap"><div class="nav-icon">👨‍🍳</div></div><span class="nav-label">Controle de Produção</span>
     </button>
+    <button class="nav-item" id="nav-cadastro" onclick="setTab(&quot;cadastro&quot;)">
+      <div class="nav-icon-wrap"><div class="nav-icon">🗂️</div></div><span class="nav-label">Cadastro Central</span>
+    </button>
     <div class="sidebar-div"></div>
     <div class="sidebar-bot"><button onclick="abrirAdmTrigger()" class="adm-trigger-btn" style="background:none;border:none;width:100%;padding:6px;cursor:pointer;opacity:.2;font-size:10px;color:#94A3B8;text-align:center">v2.0</button>
     <div class="nav-group" style="font-size:9.5px">Sistema</div>
@@ -2169,10 +2172,10 @@ if('caches' in window){
         <div class="filters">
           <div class="search-wrap">
             <span class="search-icon" style="font-size:14px">🔍</span>
-            <input type="text" id="search-input" placeholder="Buscar por nome ou código…" oninput="window._prodShown=20;renderProducts()"/>
+            <input type="text" id="search-input" placeholder="Buscar por nome ou código…" oninput="window._prodShown=20;window._ccShown=30;window._ccBusca="";renderProducts()"/>
           </div>
-          <select id="filter-cat" onchange="window._prodShown=20;renderProducts()"><option value="0">Todas categorias</option></select>
-          <select id="filter-status" onchange="window._prodShown=20;renderProducts()">
+          <select id="filter-cat" onchange="window._prodShown=20;window._ccShown=30;window._ccBusca="";renderProducts()"><option value="0">Todas categorias</option></select>
+          <select id="filter-status" onchange="window._prodShown=20;window._ccShown=30;window._ccBusca="";renderProducts()">
             <option value="all">Todos os status</option>
             <option value="expired">Vencidos</option>
             <option value="critical">Críticos (≤3d)</option>
@@ -2180,7 +2183,7 @@ if('caches' in window){
             <option value="soon">Próximos (≤30d)</option>
             <option value="ok">Em dia</option>
           </select>
-          <select id="filter-loc" onchange="window._prodShown=20;renderProducts()"><option value="0">Todos os locais</option></select>
+          <select id="filter-loc" onchange="window._prodShown=20;window._ccShown=30;window._ccBusca="";renderProducts()"><option value="0">Todos os locais</option></select>
         </div>
         <div class="table-wrap">
           <table>
@@ -2244,6 +2247,9 @@ if('caches' in window){
       </div>
       <div class="tab-content" id="tab-producao">
         <div id="producao-body"></div>
+      </div>
+      <div class="tab-content" id="tab-cadastro">
+        <div id="cadastro-body"></div>
       </div>
     </div>
   </div>
@@ -2337,7 +2343,7 @@ function notify(msg,type){
   clearTimeout(notifTimer);notifTimer=setTimeout(function(){el.style.display='none';},3000);
 }
 
-var tabTitles={dashboard:'Dashboard',products:'Produtos a Vencer',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço',producao:'Controle de Produção',consumo:'Uso e Consumo Interno'};
+var tabTitles={dashboard:'Dashboard',products:'Produtos a Vencer',alerts:'Alertas de Vencimento',reports:'Relatórios PDF',historico:'Histórico de Baixas',mensal:'Perdas Mensais',trocas:'Gestão de Trocas',rebaixas:'Rebaixas de Preço',producao:'Controle de Produção',cadastro:'Cadastro Central',consumo:'Uso e Consumo Interno'};
 function setTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
@@ -2358,6 +2364,7 @@ function setTab(tab){
   if(tab==='consumo')renderConsumo();
   if(tab==='products'){setupInfiniteScroll();}
   if(tab==='producao')renderProducao();
+  if(tab==='cadastro')renderCadastroCentral();
   if(window.checkAIBadge) checkAIBadge();
 }
 
@@ -6893,7 +6900,7 @@ function clearAllData(){
   window.products=[];window.categories=[];window.locations=[];
   window.historico=[];window.trocas=[];window.rebaixas=[];window.consumoItens=[];window.consumoRetiradas=[]; window.producoes=[];
   window.fornecedores=[];window.nextId=1;window.trocaNextId=1;window.histNextId=1;
-  window._prodShown=20;
+  window._prodShown=20;window._ccShown=30;window._ccBusca="";
   window.USERS=[{usuario:'mercadoexpresso',senha:'major4559',nome:'Master',perfil:'dono',avatar:'👑',cor:'#B45309',master:true}];
   window.consumoItemNextId=1;window.consumoRetNextId=1;window.producaoNextId=1;window.rebaixaNextId=1;
   try{
@@ -8048,6 +8055,14 @@ function abrirAddVencer(){
     +'<option value="0">Sem categoria</option>'
     +categories.map(function(cat){return '<option value="'+cat.id+'">'+cat.icon+' '+cat.name+'</option>';}).join('')+'</select></div>'
 
+    +'<div class="field" style="margin-bottom:12px"><label>Fornecedor (para separar nas trocas)</label>'
+    +'<select id="av-fornecedor" onchange="avFornChange()" style="width:100%;padding:11px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit">'
+    +'<option value="">Sem fornecedor</option>'
+    +fornecedores.map(function(f){return '<option value="'+f.nome+'">'+f.nome+'</option>';}).join('')
+    +'<option value="__novo__">+ Digitar outro...</option>'
+    +'</select>'
+    +'<input type="text" id="av-fornecedor-txt" placeholder="Nome do fornecedor" style="display:none;width:100%;margin-top:6px;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
+
     +'<div class="field" style="margin-bottom:16px"><label>Lote (opcional)</label>'
     +'<input type="text" id="av-lote" placeholder="Ex: L2024-05" style="width:100%;padding:11px 14px;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit"/></div>'
 
@@ -8104,6 +8119,21 @@ function avLimpar(){
   document.getElementById('av-form').style.display='none';
 }
 
+function avFornChange(){
+  var sel=document.getElementById('av-fornecedor');
+  var txt=document.getElementById('av-fornecedor-txt');
+  if(sel.value==='__novo__'){ txt.style.display='block'; txt.focus(); }
+  else { txt.style.display='none'; }
+}
+
+function avGetFornecedor(){
+  var sel=document.getElementById('av-fornecedor');
+  if(sel.value==='__novo__'){
+    return (document.getElementById('av-fornecedor-txt').value||'').trim();
+  }
+  return sel.value||'';
+}
+
 function salvarAddVencer(){
   var prodId=+document.getElementById('av-prod-id').value;
   var p=products.find(function(x){return x.id===prodId;});
@@ -8114,6 +8144,7 @@ function salvarAddVencer(){
   var qtd=+document.getElementById('av-qtd').value||1;
   var cat=+document.getElementById('av-cat').value;
   var lote=document.getElementById('av-lote').value.trim();
+  var fornecedor=avGetFornecedor();
 
   // Se o produto já tem validade (já está "a vencer"), cria uma nova entrada (cópia)
   // Senão, atualiza o próprio produto do cadastro
@@ -8122,7 +8153,7 @@ function salvarAddVencer(){
     var novo={
       id:uniqueId(), codigo:p.codigo, barcode:p.barcode, name:p.name,
       preco:p.preco, category:cat, location:local, quantity:qtd,
-      minStock:p.minStock||5, expiry:validade, lote:lote, fornecedor:p.fornecedor||'',
+      minStock:p.minStock||5, expiry:validade, lote:lote, fornecedor:fornecedor||p.fornecedor||'',
       foto:p.foto||'', soCadastro:false
     };
     products.push(novo);
@@ -8130,7 +8161,7 @@ function salvarAddVencer(){
   } else {
     // Produto do cadastro central — adiciona dados de vencimento
     p.expiry=validade; p.location=local; p.quantity=qtd;
-    p.category=cat; p.lote=lote; p.soCadastro=false;
+    p.category=cat; p.lote=lote; p.fornecedor=fornecedor||p.fornecedor||''; p.soCadastro=false;
     if(window._fb&&window._fbReady) window._fb.saveProduct(p).catch(function(){});
   }
 
@@ -9331,6 +9362,85 @@ function setupInfiniteScroll(){
   window.addEventListener('scroll', onScroll, {passive:true});
   var ct=document.getElementById('content');
   if(ct) ct.addEventListener('scroll', onScroll, {passive:true});
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CADASTRO CENTRAL — mostra TODOS os produtos da base
+// ══════════════════════════════════════════════════════════════════════
+function renderCadastroCentral(){
+  var el=document.getElementById('cadastro-body');
+  if(!el) return;
+  if(window._ccShown===undefined) window._ccShown=30;
+  var termo=(window._ccBusca||'').toLowerCase();
+
+  var lista=products.filter(function(p){
+    if(!termo) return true;
+    return p.name.toLowerCase().indexOf(termo)>=0
+      || (p.barcode&&p.barcode.indexOf(termo)>=0)
+      || (p.codigo&&p.codigo.indexOf(termo)>=0);
+  }).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+
+  var comValidade=products.filter(function(p){return p.expiry&&!p.soCadastro;}).length;
+  var soCadastro=products.length-comValidade;
+
+  var html='';
+  // Cabeçalho explicativo
+  html+='<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:#1E40AF;line-height:1.6">'
+    +'🗂️ Esta é a <b>base completa de produtos</b>. Todos os produtos cadastrados aparecem aqui, mesmo os sem validade. Eles ficam disponíveis para <b>Produtos a Vencer</b>, <b>Uso e Consumo</b> e <b>Controle de Produção</b>.'
+    +'</div>';
+
+  // Cards de resumo
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1E293B">'+products.length+'</div><div style="font-size:11px;color:#94A3B8">Total</div></div>'
+    +'<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:#16A34A">'+comValidade+'</div><div style="font-size:11px;color:#16A34A">Com validade</div></div>'
+    +'<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:13px;text-align:center"><div style="font-size:22px;font-weight:800;color:#64748B">'+soCadastro+'</div><div style="font-size:11px;color:#94A3B8">Só cadastro</div></div>'
+    +'</div>';
+
+  // Botões
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'
+    +'<button onclick="openNewProd()" class="btn btn-primary" style="font-size:13px;padding:9px 16px">+ Novo Produto</button>'
+    +'<button onclick="abrirImportacao()" class="btn btn-secondary" style="font-size:13px;padding:9px 16px">📥 Importar PDF</button>'
+    +'</div>';
+
+  // Busca
+  html+='<input type="text" id="cc-busca" value="'+(window._ccBusca||'')+'" placeholder="🔍 Buscar por nome, código ou barras..." oninput="window._ccBusca=this.value;window._ccShown=30;renderCadastroCentral();setTimeout(function(){var b=document.getElementById(&quot;cc-busca&quot;);if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},0)" style="width:100%;padding:11px 14px;background:#fff;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;margin-bottom:14px"/>';
+
+  if(lista.length===0){
+    html+='<div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:10px">🗂️</div><div style="font-size:14px;color:#64748B">'+(termo?'Nenhum produto encontrado':'Nenhum produto cadastrado ainda')+'</div></div>';
+    el.innerHTML=html;
+    return;
+  }
+
+  var mostrados=lista.slice(0,window._ccShown);
+
+  html+='<div class="card" style="padding:0;overflow:hidden">';
+  mostrados.forEach(function(p,i){
+    var cat=getCat(p.category);
+    var temValidade=p.expiry&&!p.soCadastro;
+    html+='<div style="display:flex;align-items:center;gap:11px;padding:12px 14px'+(i<mostrados.length-1?';border-bottom:1px solid #F1F5F9':'')+'">'
+      +'<div style="width:38px;height:38px;border-radius:9px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">'+cat.icon+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-weight:600;font-size:13.5px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:#94A3B8">'+(p.codigo?'Cód '+p.codigo:'')+(p.barcode?' · '+p.barcode:'')+(p.preco?' · R$ '+(+p.preco).toFixed(2).replace('.',','):'')+'</div>'
+      +'</div>'
+      +(temValidade
+        ?'<span style="font-size:10.5px;font-weight:700;background:#F0FDF4;color:#16A34A;padding:2px 9px;border-radius:20px;flex-shrink:0">a vencer</span>'
+        :'<span style="font-size:10.5px;font-weight:600;background:#F1F5F9;color:#94A3B8;padding:2px 9px;border-radius:20px;flex-shrink:0">cadastro</span>')
+      +'<button onclick="openEditProd('+p.id+')" style="background:none;border:none;cursor:pointer;color:#64748B;font-size:13px;flex-shrink:0">✏️</button>'
+      +'<button onclick="delProduct('+p.id+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:13px;flex-shrink:0">🗑️</button>'
+      +'</div>';
+  });
+  html+='</div>';
+
+  // Carregar mais
+  if(lista.length>window._ccShown){
+    html+='<div style="text-align:center;padding:14px"><div style="font-size:12px;color:#94A3B8;margin-bottom:8px">Mostrando '+mostrados.length+' de '+lista.length+'</div>'
+      +'<button onclick="window._ccShown+=30;renderCadastroCentral()" class="btn btn-secondary" style="padding:7px 18px;font-size:12.5px">Carregar mais</button></div>';
+  } else if(lista.length>30){
+    html+='<div style="text-align:center;padding:12px;font-size:12px;color:#CBD5E1">'+lista.length+' produtos · fim da lista</div>';
+  }
+
+  el.innerHTML=html;
 }
 
 function updateBadge(){
