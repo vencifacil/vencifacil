@@ -324,9 +324,14 @@ input,select,button,textarea{font-family:'Plus Jakarta Sans',sans-serif}
 .table-wrap{
   border-radius:var(--radius-lg);
   border:1px solid #D9EFE0;
-  overflow:visible;background:#fff;
+  background:#fff;
   box-shadow:var(--shadow-sm);
+  max-height:62vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
+.table-wrap::-webkit-scrollbar{width:8px}
+.table-wrap::-webkit-scrollbar-track{background:#F1F5F9}
+.table-wrap::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px}
+.table-wrap thead th{position:sticky;top:0;background:#F0FDF4;z-index:2}
 table{width:100%;border-collapse:collapse}
 thead tr{background:#F2FAF4}
 th{
@@ -1103,6 +1108,11 @@ input,select,textarea{font-size:16px !important}
 
 /* Fix iOS momentum scrolling in modals */
 .modal{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lista-scroll{max-height:62vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+.lista-scroll::-webkit-scrollbar{width:8px}
+.lista-scroll::-webkit-scrollbar-track{background:#F1F5F9;border-radius:8px}
+.lista-scroll::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px}
+.lista-scroll::-webkit-scrollbar-thumb:hover{background:#94A3B8}
 #content{-webkit-overflow-scrolling:touch}
 
 /* Fix iOS Safari bottom nav overlap */
@@ -2361,9 +2371,9 @@ function setTab(tab){
   if(tab==='trocas')renderTrocas();
   if(tab==='rebaixas')renderRebaixas();
   if(tab==='consumo')renderConsumo();
-  if(tab==='products'){setupInfiniteScroll();}
   if(tab==='producao')renderProducao();
   if(tab==='cadastro')renderCadastroCentral();
+  aplicarRolagemListas();
   if(window.checkAIBadge) checkAIBadge();
 }
 
@@ -2789,12 +2799,8 @@ function renderProducts(){
   }).sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
   var tbody=document.getElementById('prod-body');
   var empty=document.getElementById('prod-empty');
-  // Rolagem com carregamento progressivo (infinite scroll)
-  var BATCH=20;
-  if(window._prodShown===undefined||window._prodShown<BATCH) window._prodShown=BATCH;
-  // Não mostrar mais do que existe
-  if(window._prodShown>list.length) window._prodShown=Math.max(BATCH,Math.ceil(list.length/BATCH)*BATCH);
-  var pageList=list.slice(0,window._prodShown);
+  // Lista completa dentro da caixa rolável (altura fixa, rola dentro)
+  var pageList=list;
   if(!list.length){tbody.innerHTML='';empty.style.display='';}
   else{
     empty.style.display='none';
@@ -2815,18 +2821,7 @@ function renderProducts(){
     }).join('');
     var pagEl=document.getElementById('prod-pagination');
     if(pagEl){
-      var faltam=list.length-pageList.length;
-      if(faltam>0){
-        // Botão de carregar mais (fallback) + carregamento automático ao rolar
-        pagEl.innerHTML='<div style="text-align:center;padding:14px">'
-          +'<div style="font-size:12px;color:#94A3B8;margin-bottom:8px">Mostrando '+pageList.length+' de '+list.length+' produtos</div>'
-          +'<button onclick="window._prodShown+=20;renderProducts()" class="btn btn-secondary" style="padding:7px 18px;font-size:12.5px">Carregar mais</button>'
-          +'</div>';
-      } else if(list.length>20){
-        pagEl.innerHTML='<div style="text-align:center;padding:12px;font-size:12px;color:#CBD5E1">'+list.length+' produtos · fim da lista</div>';
-      } else {
-        pagEl.innerHTML='';
-      }
+      pagEl.innerHTML = list.length>0 ? '<div style="text-align:center;padding:10px;font-size:12px;color:#94A3B8">'+list.length+' produto'+(list.length!==1?'s':'')+'</div>' : '';
     }
   }
   document.getElementById('prod-count').textContent=list.length+' produto'+(list.length!==1?'s':'')+(list.length<products.length?' ('+products.length+' total incluindo trocas/rebaixas)':'');
@@ -2837,6 +2832,7 @@ function renderAlerts(){
   var floc=+(document.getElementById('alert-filter-loc')||{value:0}).value||0;
   var al=getAlertsAll().filter(function(p){return !floc||p.location===floc;});
   var el=document.getElementById('alerts-body');
+  if(el) el.classList.add('lista-scroll');
   // filter bar
   var filterBar='<div style="display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap;align-items:center">'
     +'<select id="alert-filter-loc" onchange="renderAlerts()" style="padding:9px 13px;background:#fff;border:1px solid #E2E8F0;border-radius:10px;color:#334155;font-size:13px;outline:none">'
@@ -4116,6 +4112,7 @@ function setHistFiltro(f){window._histFiltro=f;renderHistorico();}
 
 function renderHistorico(){
   var el=document.getElementById('historico-body');
+  if(el) el.classList.add('lista-scroll');
   if(!el) return;
 
   var filtro=window._histFiltro||'todos';
@@ -4686,6 +4683,7 @@ function enviarTrocaWhatsApp(fornecedor){
 
 function renderTrocas(){
   var el=document.getElementById('trocas-body');
+  if(el) el.classList.add('lista-scroll');
   if(!el) return;
 
   var filtroStatus=window._trocaFiltro||'pendente';
@@ -5898,6 +5896,7 @@ function confirmarEncerramento(rebaixaId){
 
 function renderRebaixas(){
   var el=document.getElementById('rebaixas-body');
+  if(el) el.classList.add('lista-scroll');
   if(!el) return;
   var ativas=rebaixas.filter(function(r){return r.status==='ativa';});
   var encerradas=rebaixas.filter(function(r){return r.status!=='ativa';});
@@ -9413,9 +9412,9 @@ function renderCadastroCentral(){
     return;
   }
 
-  var mostrados=lista.slice(0,window._ccShown);
+  var mostrados=lista; // caixa rolável mostra todos
 
-  html+='<div class="card" style="padding:0;overflow:hidden">';
+  html+='<div class="card lista-scroll" style="padding:0">';
   mostrados.forEach(function(p,i){
     var cat=getCat(p.category);
     var temValidade=p.expiry&&!p.soCadastro;
@@ -9434,15 +9433,25 @@ function renderCadastroCentral(){
   });
   html+='</div>';
 
-  // Carregar mais
-  if(lista.length>window._ccShown){
-    html+='<div style="text-align:center;padding:14px"><div style="font-size:12px;color:#94A3B8;margin-bottom:8px">Mostrando '+mostrados.length+' de '+lista.length+'</div>'
-      +'<button onclick="window._ccShown+=30;renderCadastroCentral()" class="btn btn-secondary" style="padding:7px 18px;font-size:12.5px">Carregar mais</button></div>';
-  } else if(lista.length>30){
-    html+='<div style="text-align:center;padding:12px;font-size:12px;color:#CBD5E1">'+lista.length+' produtos · fim da lista</div>';
-  }
+  html+='<div style="text-align:center;padding:10px;font-size:12px;color:#94A3B8">'+lista.length+' produto'+(lista.length!==1?'s':'')+'</div>';
 
   el.innerHTML=html;
+}
+
+// Aplica caixa de rolagem interna nas listas de produtos
+function aplicarRolagemListas(){
+  var alvos={
+    'alerts-body':'alerts',
+    'trocas-body':'trocas',
+    'rebaixas-body':'rebaixas',
+    'historico-body':'historico'
+  };
+  Object.keys(alvos).forEach(function(id){
+    var el=document.getElementById(id);
+    if(el && window.currentTab===alvos[id]){
+      el.classList.add('lista-scroll');
+    }
+  });
 }
 
 function updateBadge(){
