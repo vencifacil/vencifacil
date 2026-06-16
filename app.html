@@ -8777,31 +8777,52 @@ function cruzarVendas(linhas){
     }
 
     if(melhorLinha){
-      // Formato do relatório: CODIGO BARRAS DESCRICAO  QTD  CUSTO_TOTAL  VENDA_TOTAL  LUCRO
-      // Todos em formato brasileiro: 2.662,000 / 11.120,38
-      var matches=melhorLinha.match(/-?\d{1,3}(?:\.\d{3})*,\d+/g)||[];
-      if(matches.length>=3){
-        // Os 4 últimos números (ou 3) são QTD, CUSTO_total, VENDA_total[, LUCRO]
-        var ult = matches.length>=4 ? matches.slice(-4) : matches.slice(-3);
-        function pBR(s){return parseFloat(s.replace(/\./g,'').replace(',','.'));}
-        var qtdPDF=pBR(ult[0]);
-        var custoTotal=pBR(ult[1]);
-        var vendaTotal=pBR(ult[2]);
-        // Custo e preço UNITÁRIOS vêm do PDF
-        if(qtdPDF>0){
-          it.custo=Math.round(custoTotal/qtdPDF*100)/100;
-          it.preco=Math.round(vendaTotal/qtdPDF*100)/100;
+      // Formato do relatório de vendas:
+      //   ...PRODUTO  <QTD> Un|Kg  CUSTO_TOTAL  VENDA_TOTAL  LUCRO  MARGEM%
+      // A quantidade vem acompanhada de "Un" ou "Kg" (ex: "7 Un", "1,556 Kg")
+      function pBR(s){return parseFloat(s.replace(/\./g,'').replace(',','.'));}
+      var dados=null;
+      // 1) Localiza a quantidade com unidade (Un/Kg/UNI)
+      var mQtd=melhorLinha.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(Un|Kg|UNI|UN|KG|Und|PC|PCT)\b/i);
+      if(mQtd){
+        var qtdStr=mQtd[1], qtd;
+        if(qtdStr.indexOf(',')>=0){
+          qtd=parseFloat(qtdStr.replace(/\./g,'').replace(',','.'));
+        } else if(qtdStr.indexOf('.')>=0){
+          var partes=qtdStr.split('.');
+          // se a parte após o ponto tem 3 dígitos e só há um ponto, é decimal de kg (1.556)
+          if(partes.length===2 && partes[1].length===3) qtd=parseFloat(qtdStr);
+          else qtd=parseFloat(qtdStr.replace(/\./g,''));
+        } else {
+          qtd=parseFloat(qtdStr);
         }
-        // Vendido = quantidade do PDF (sem limitar)
-        it.vendido=qtdPDF;
+        // Pega os valores monetários DEPOIS da quantidade: custo, venda, lucro
+        var depois=melhorLinha.substring(mQtd.index+mQtd[0].length);
+        var vals=depois.match(/-?\d{1,3}(?:\.\d{3})*,\d+/g)||[];
+        if(vals.length>=2){
+          dados={qtd:qtd, custoTotal:pBR(vals[0]), vendaTotal:pBR(vals[1])};
+        }
+      }
+      // 2) Fallback: formato antigo (qtd custo venda lucro, todos com vírgula)
+      if(!dados){
+        var matches=melhorLinha.match(/-?\d{1,3}(?:\.\d{3})*,\d+/g)||[];
+        if(matches.length>=3){
+          var ult=matches.length>=4?matches.slice(-4):matches.slice(-3);
+          dados={qtd:pBR(ult[0]), custoTotal:pBR(ult[1]), vendaTotal:pBR(ult[2])};
+        }
+      }
+      if(dados && dados.qtd>0){
+        it.custo=Math.round(dados.custoTotal/dados.qtd*100)/100;  // custo unitário
+        it.preco=Math.round(dados.vendaTotal/dados.qtd*100)/100;  // preço de venda unitário
+        it.vendido=dados.qtd;
         it._linhaPDF=melhorLinha;
         encontrados++;
-        detalhes.push({nome:it.nome, qtd:qtdPDF, qtdPDF:qtdPDF, custo:it.custo, preco:it.preco, linha:melhorLinha, ok:true, limitado:false});
+        detalhes.push({nome:it.nome, qtd:dados.qtd, custo:it.custo, preco:it.preco, linha:melhorLinha, ok:true});
       } else {
+        it.vendido=0;
         detalhes.push({nome:it.nome, ok:false});
       }
     } else {
-      // Não cruzou — zera o vendido para não deixar valor antigo/lixo
       it.vendido=0;
       detalhes.push({nome:it.nome, ok:false});
     }
@@ -8932,16 +8953,44 @@ function extrairProdutosPDF(linhas){
        low.indexOf('total')>=0||low.indexOf('sistema')>=0||low.indexOf('período')>=0||
        low.indexOf('filtro')>=0||low.indexOf('excluido')>=0) return;
 
-    // Tenta formato completo: codigo barras DESCRICAO qtd,xxx custo,xx venda,xx lucro,xx
+    function pBR(s){return parseFloat(s.replace(/\./g,'').replace(',','.'));}
+    // Formato com unidade: CODIGO [BARRAS] DESCRICAO  <QTD> Un|Kg  CUSTO  VENDA  LUCRO
+    var mCod=linha.match(/^\s*(\d+)\s+/);
+    var mQ=linha.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(Un|Kg|UNI|UN|KG|Und|PC|PCT)\b/i);
+    if(mCod && mQ){
+      var codigo=mCod[1];
+      var qtdStr=mQ[1], qtd;
+      if(qtdStr.indexOf(',')>=0) qtd=parseFloat(qtdStr.replace(/\./g,'').replace(',','.'));
+      else if(qtdStr.indexOf('.')>=0){var pp=qtdStr.split('.');qtd=(pp.length===2&&pp[1].length===3)?parseFloat(qtdStr):parseFloat(qtdStr.replace(/\./g,''));}
+      else qtd=parseFloat(qtdStr);
+      var depois=linha.substring(mQ.index+mQ[0].length);
+      var vals=depois.match(/-?\d{1,3}(?:\.\d{3})*,\d+/g)||[];
+      if(vals.length>=2){
+        var custoTotal=pBR(vals[0]);
+        var custoUnit=qtd>0?Math.round(custoTotal/qtd*100)/100:0;
+        // Descrição: entre os códigos e a quantidade
+        var antes=linha.substring(0,mQ.index).replace(/^\s*\d+\s+/,'');
+        var barras='';
+        var mb=antes.match(/^(\d{6,})\s+/);
+        if(mb){ barras=mb[1]; antes=antes.substring(mb[0].length); }
+        var desc=antes.trim();
+        if(desc && !vistos[codigo]){
+          vistos[codigo]=true;
+          produtos.push({codigo:codigo, barcode:barras, name:desc, custo:custoUnit});
+        }
+        return;
+      }
+    }
+    // Formato antigo: codigo barras DESCRICAO qtd,xxx custo venda lucro (qtd com vírgula)
     var m=linha.match(/^(\d+)\s+(\S+)\s+(.+?)\s+([\d.]+,\d+)\s+([\d.]+,\d+)\s+([\d.]+,\d+)\s+(-?[\d.]+,\d+)\s*$/);
     if(m){
-      var codigo=m[1], barras=m[2], desc=m[3].trim();
-      var qtd=parseFloat(m[4].replace(/\./g,'').replace(',','.'));
-      var custoTotal=parseFloat(m[5].replace(/\./g,'').replace(',','.'));
-      var custoUnit=qtd>0?Math.round(custoTotal/qtd*100)/100:0;
-      if(!vistos[codigo]){
-        vistos[codigo]=true;
-        produtos.push({codigo:codigo, barcode:(barras!==codigo?barras:''), name:desc, custo:custoUnit});
+      var codigoB=m[1], barrasB=m[2], descB=m[3].trim();
+      var qtdB=pBR(m[4]);
+      var custoTotalB=pBR(m[5]);
+      var custoUnitB=qtdB>0?Math.round(custoTotalB/qtdB*100)/100:0;
+      if(!vistos[codigoB]){
+        vistos[codigoB]=true;
+        produtos.push({codigo:codigoB, barcode:(barrasB!==codigoB?barrasB:''), name:descB, custo:custoUnitB});
       }
       return;
     }
