@@ -8442,7 +8442,7 @@ function renderModalProducao(){
   var t=calcProducaoTotais(p);
 
   var html='<div class="overlay open" id="modal-producao" style="z-index:920">'
-    +'<div class="modal" style="width:min(680px,96vw);max-height:92vh;overflow-y:auto">'
+    +'<div class="modal" style="width:min(720px,96vw);max-height:92vh;overflow-y:auto">'
     +'<div class="modal-hdr"><div class="modal-title">👨‍🍳 Lançamento de Produção</div>'
     +'<button class="close-btn" onclick="fecharModalProducao()">✕</button></div>'
 
@@ -8465,9 +8465,11 @@ function renderModalProducao(){
       +'<div style="font-size:32px;margin-bottom:8px">📋</div>'
       +'<div style="font-size:13px">Adicione os produtos que este setor produziu.</div></div>';
   } else {
-    html+='<div style="overflow-x:auto;margin-bottom:14px"><div style="min-width:620px">';
+    html+='<div style="overflow-x:auto;margin-bottom:14px"><div style="min-width:640px">';
+    // Grade compartilhada (cabeçalho + linhas usam a MESMA): produto + 8 colunas de 68px + lixeira
+    var GRID='grid-template-columns:minmax(120px,1.4fr) repeat(8,68px) 32px;gap:6px;';
     // Cabeçalho
-    html+='<div style="display:grid;grid-template-columns:1.5fr 60px 64px 64px 64px 52px 52px 76px 76px 28px;gap:5px;padding:8px 10px;background:#F1F5F9;border-radius:9px 9px 0 0;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.2px">'
+    html+='<div style="display:grid;'+GRID+'padding:9px 10px;background:#F1F5F9;border-radius:9px 9px 0 0;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.2px;align-items:center">'
       +'<div>Produto</div>'
       +'<div style="text-align:center">Custo</div>'
       +'<div style="text-align:center">Produz.</div>'
@@ -8475,28 +8477,28 @@ function renderModalProducao(){
       +'<div style="text-align:center">Rebaixa</div>'
       +'<div style="text-align:center">Sobra</div>'
       +'<div style="text-align:center">Perda</div>'
-      +'<div style="text-align:right">Receita</div>'
-      +'<div style="text-align:right">Result.</div>'
+      +'<div style="text-align:center">Receita</div>'
+      +'<div style="text-align:center">Result.</div>'
       +'<div></div></div>';
+    // Estilo padrão dos inputs (mesma altura/borda em todos = alinhamento perfeito)
+    var INP='width:100%;height:32px;padding:0 4px;text-align:center;border:1px solid #E2E8F0;border-radius:6px;font-size:12px;outline:none;box-sizing:border-box;font-family:inherit';
     // Linhas
     html+=p.itens.map(function(it,i){
       var ci=calcItemProducao(it);
-      return '<div style="display:grid;grid-template-columns:1.5fr 60px 64px 64px 64px 52px 52px 76px 76px 28px;gap:5px;padding:8px 10px;border-bottom:1px solid #F1F5F9;align-items:center;background:#fff">'
-        +'<div style="min-width:0" title="'+it.nome+'"><div style="font-weight:600;font-size:11.5px;color:#1E293B;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+it.nome+'</div>'
-        +'<div style="font-size:9.5px;color:#94A3B8;margin-top:1px">Venda R$'+(+it.preco||0).toFixed(2)+'</div></div>'
-        +'<div><input type="number" value="'+(it.custo||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;custo&quot;,this.value)" style="width:100%;padding:6px 4px;text-align:center;border:1px solid #E2E8F0;border-radius:6px;font-size:11.5px;outline:none"/></div>'
-        +'<div><input type="number" value="'+(it.produzido||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;produzido&quot;,this.value)" style="width:100%;padding:6px 4px;text-align:center;border:1px solid #E2E8F0;border-radius:6px;font-size:11.5px;outline:none"/></div>'
-        +'<div><input type="number" value="'+(it.vendido||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;vendido&quot;,this.value)" style="width:100%;padding:6px 4px;text-align:center;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;font-size:11.5px;outline:none"/></div>'
-        +'<div><input type="number" value="'+(it.rebaixa||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;rebaixa&quot;,this.value)" onchange="renderModalProducao()" style="width:100%;padding:6px 4px;text-align:center;border:1px solid #FED7AA;background:#FFF7ED;border-radius:6px;font-size:11.5px;outline:none"/>'
-        +(ci.rebaixa>0?'<input type="number" value="'+(it.precoRebaixa||0)+'" min="0" step="0.01" inputmode="decimal" placeholder="R$ reb." oninput="atualizaItemProd('+i+',&quot;precoRebaixa&quot;,this.value)" style="width:100%;margin-top:3px;padding:4px;text-align:center;border:1px solid #FED7AA;border-radius:6px;font-size:10px;outline:none"/>':'')+'</div>'
-        +'<div id="cell-sobra-'+i+'" style="text-align:center;font-size:11.5px;font-weight:600;color:#64748B">'+fmtNum(ci.sobra)+'</div>'
-        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:11.5px;font-weight:700;color:'+(ci.perda>0?'#DC2626':'#CBD5E1')+'">'+fmtNum(ci.perda)+'</div>'
-        +'<div><input type="number" value="'+(it.receitaManual!==undefined?it.receitaManual:ci.receita.toFixed(2))+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;receitaManual&quot;,this.value)" title="Receita calculada: R$'+ci.receita.toFixed(2)+'" style="width:100%;padding:6px 4px;text-align:right;border:1px solid #E2E8F0;border-radius:6px;font-size:11.5px;outline:none;color:#16A34A;font-weight:600"/></div>'
-        +'<div id="cell-result-'+i+'" style="text-align:right;font-size:11.5px;font-weight:700;color:'+(ci.resultado>=0?'#16A34A':'#DC2626')+'">R$'+ci.resultado.toFixed(2).replace('.',',')+'</div>'
+      return '<div style="display:grid;'+GRID+'padding:7px 10px;border-bottom:1px solid #F1F5F9;align-items:center;background:#fff">'
+        +'<div style="min-width:0" title="'+it.nome+'"><div style="font-weight:600;font-size:11.5px;color:#1E293B;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+it.nome+'</div></div>'
+        +'<div><input type="number" value="'+(it.custo||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;custo&quot;,this.value)" style="'+INP+'"/></div>'
+        +'<div><input type="number" value="'+(it.produzido||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;produzido&quot;,this.value)" style="'+INP+'"/></div>'
+        +'<div><input type="number" value="'+(it.vendido||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;vendido&quot;,this.value)" style="'+INP+';border-color:#BBF7D0;background:#F0FDF4"/></div>'
+        +'<div><input type="number" value="'+(it.rebaixa||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;rebaixa&quot;,this.value)" onchange="renderModalProducao()" style="'+INP+';border-color:#FED7AA;background:#FFF7ED"/>'
+        +(ci.rebaixa>0?'<input type="number" value="'+(it.precoRebaixa||0)+'" min="0" step="0.01" inputmode="decimal" placeholder="R$ reb." oninput="atualizaItemProd('+i+',&quot;precoRebaixa&quot;,this.value)" style="width:100%;height:24px;margin-top:3px;padding:0 4px;text-align:center;border:1px solid #FED7AA;border-radius:6px;font-size:10px;outline:none;box-sizing:border-box"/>':'')+'</div>'
+        +'<div id="cell-sobra-'+i+'" style="text-align:center;font-size:12px;font-weight:600;color:#64748B">'+fmtNum(ci.sobra)+'</div>'
+        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.perda>0?'#DC2626':'#CBD5E1')+'">'+fmtNum(ci.perda)+'</div>'
+        +'<div><input type="number" value="'+(it.receitaManual!==undefined?it.receitaManual:ci.receita.toFixed(2))+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;receitaManual&quot;,this.value)" title="Receita calculada: R$'+ci.receita.toFixed(2)+'" style="'+INP+';color:#16A34A;font-weight:600"/></div>'
+        +'<div id="cell-result-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.resultado>=0?'#16A34A':'#DC2626')+'">R$'+ci.resultado.toFixed(2).replace('.',',')+'</div>'
         +'<button onclick="removerItemProd('+i+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:12px">🗑️</button>'
         +'</div>';
     }).join('');
-
     html+='</div></div>';
   }
 
