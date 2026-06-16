@@ -8192,20 +8192,25 @@ function calcItemProducao(it){
   var precoRebaixa=+it.precoRebaixa||0;
 
   var sobra=Math.max(0, produzido-vendido);      // o que não vendeu no preço normal
-  var perda=Math.max(0, sobra-rebaixa);          // o que não vendeu nem rebaixado
+  var perda=Math.max(0, sobra-rebaixa);          // o que não vendeu nem rebaixado (perda total)
   var receitaNormal=vendido*preco;
   var receitaRebaixa=rebaixa*precoRebaixa;
   var receitaCalc=receitaNormal+receitaRebaixa;
   // Se o usuário editou a receita manualmente, usa ela; senão usa a calculada
   var receita=(it.receitaManual!==undefined && it.receitaManual!=='' && !isNaN(+it.receitaManual)) ? +it.receitaManual : receitaCalc;
   var custoTotal=produzido*custo;
-  var perdaValor=perda*custo;                    // custo do que foi perdido
+  // Perda da rebaixa: o que NÃO se recuperou ao vender mais barato (custo - preço rebaixa), nunca negativo
+  var perdaRebaixaUnit=Math.max(0, custo-precoRebaixa);
+  var perdaRebaixaValor=rebaixa*perdaRebaixaUnit;
+  // Perda total = itens perdidos (custo cheio) + diferença não recuperada na rebaixa
+  var perdaValor=(perda*custo)+perdaRebaixaValor;
   var resultado=receita-custoTotal;
 
   return {
     produzido:produzido, vendido:vendido, rebaixa:rebaixa, sobra:sobra, perda:perda,
     receitaNormal:receitaNormal, receitaRebaixa:receitaRebaixa, receita:receita,
-    custoTotal:custoTotal, perdaValor:perdaValor, resultado:resultado
+    custoTotal:custoTotal, perdaValor:perdaValor, resultado:resultado,
+    perdaRebaixaValor:perdaRebaixaValor
   };
 }
 
@@ -8493,7 +8498,7 @@ function renderModalProducao(){
         +'<div><input type="number" value="'+(it.rebaixa||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;rebaixa&quot;,this.value)" onchange="renderModalProducao()" style="'+INP+';border-color:#FED7AA;background:#FFF7ED"/>'
         +(ci.rebaixa>0?'<input type="number" value="'+(it.precoRebaixa||0)+'" min="0" step="0.01" inputmode="decimal" placeholder="R$ reb." oninput="atualizaItemProd('+i+',&quot;precoRebaixa&quot;,this.value)" style="width:100%;height:24px;margin-top:3px;padding:0 4px;text-align:center;border:1px solid #FED7AA;border-radius:6px;font-size:10px;outline:none;box-sizing:border-box"/>':'')+'</div>'
         +'<div id="cell-sobra-'+i+'" style="text-align:center;font-size:12px;font-weight:600;color:#64748B">'+fmtNum(ci.sobra)+'</div>'
-        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.perda>0?'#DC2626':'#CBD5E1')+'">'+fmtNum(ci.perda)+'</div>'
+        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.perdaValor>0?'#DC2626':'#CBD5E1')+'" title="Perda em R$: '+ci.perdaValor.toFixed(2)+(ci.perdaRebaixaValor>0?' (inclui R$'+ci.perdaRebaixaValor.toFixed(2)+' da rebaixa)':'')+'">'+fmtNum(ci.perda)+(ci.perdaRebaixaValor>0?'<div style="font-size:9px;color:#B45309;font-weight:600">+R$'+ci.perdaRebaixaValor.toFixed(2).replace('.',',')+'</div>':'')+'</div>'
         +'<div><input type="number" value="'+(it.receitaManual!==undefined?it.receitaManual:ci.receita.toFixed(2))+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;receitaManual&quot;,this.value)" title="Receita calculada: R$'+ci.receita.toFixed(2)+'" style="'+INP+';color:#16A34A;font-weight:600"/></div>'
         +'<div id="cell-result-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.resultado>=0?'#16A34A':'#DC2626')+'">R$'+ci.resultado.toFixed(2).replace('.',',')+'</div>'
         +'<button onclick="removerItemProd('+i+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:12px">🗑️</button>'
@@ -8544,7 +8549,7 @@ function atualizaItemProd(idx, campo, val){
   // Atualiza células derivadas sem re-render (mantém foco)
   var ci=calcItemProducao(it);
   var cs=document.getElementById('cell-sobra-'+idx);   if(cs)cs.textContent=fmtNum(ci.sobra);
-  var cp=document.getElementById('cell-perda-'+idx);   if(cp){cp.textContent=fmtNum(ci.perda);cp.style.color=ci.perda>0?'#DC2626':'#CBD5E1';}
+  var cp=document.getElementById('cell-perda-'+idx);   if(cp){cp.innerHTML=fmtNum(ci.perda)+(ci.perdaRebaixaValor>0?'<div style="font-size:9px;color:#B45309;font-weight:600">+R$'+ci.perdaRebaixaValor.toFixed(2).replace('.',',')+'</div>':'');cp.style.color=ci.perdaValor>0?'#DC2626':'#CBD5E1';}
   var crs=document.getElementById('cell-result-'+idx); if(crs){crs.textContent='R$'+ci.resultado.toFixed(2).replace('.',',');crs.style.color=ci.resultado>=0?'#16A34A':'#DC2626';}
   // Atualiza totais
   var t=calcProducaoTotais(_prodAtual);
