@@ -5844,8 +5844,13 @@ function confirmarEncerramento(rebaixaId){
   if(window._fb&&window._fbReady) window._fb.saveRebaixa(rb).catch(function(){});
 
   if(sobra===0){
-    // Vendeu tudo — restaura preço, produto volta ao normal
-    if(p){p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;fbSaveProduct(p);}
+    // Vendeu tudo — produto saiu do estoque, remove de "a vencer"
+    if(p){
+      p.precoVenda=rb.precoOriginal;p.emRebaixa=false;delete p.rebaixaId;
+      p.quantity=0;
+      p.expiry='';p.soCadastro=true; // vendeu tudo — sai de "Produtos a Vencer"
+      fbSaveProduct(p);
+    }
     notify('🎉 Rebaixa encerrada — vendeu todas as '+estoque+' unidades!');
   } else if(destino==='troca'){
     // Sobrou e vai para troca — produto sai da lista a vencer
