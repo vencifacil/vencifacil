@@ -8262,8 +8262,7 @@ function renderProducao(){
   });
 
   // Taxa de aproveitamento
-  var totalVendido=tMes.vendido+tMes.rebaixa;
-  var taxaAprov=tMes.produzido>0?Math.round(totalVendido/tMes.produzido*100):0;
+  var taxaAprov=tMes.produzido>0?Math.min(100,Math.round((tMes.produzido-tMes.perda)/tMes.produzido*100)):0;
   var taxaPerda=tMes.produzido>0?Math.round(tMes.perda/tMes.produzido*100):0;
 
   var mesLabel=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
@@ -8371,7 +8370,7 @@ function renderProducao(){
       var g=lancPorSetor[s]; var cor=corSetorProd(s); var key=s.replace(/[^a-zA-Z0-9]/g,'');
       var lancsHtml=g.lancs.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(p){
         var t=calcProducaoTotais(p); var d=new Date(p.data);
-        var totalVend=t.vendido+t.rebaixa; var taxa=t.produzido>0?Math.round(totalVend/t.produzido*100):0;
+        var taxa=t.produzido>0?Math.min(100,Math.round((t.produzido-t.perda)/t.produzido*100)):0;
         return '<div onclick="abrirDetalheProducao('+p.id+')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #F8FAFC;cursor:pointer">'
           +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;color:#1E293B;font-weight:600">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+'</div>'
           +'<div style="font-size:11px;color:#94A3B8">'+(p.itens?p.itens.length:0)+' itens · '+taxa+'% aproveitado</div></div>'
@@ -9285,7 +9284,7 @@ function renderAnaliseProducao(){
     tot.perda+=g.perda; tot.receita+=g.receita; tot.custoTotal+=g.custoTotal;
     tot.perdaValor+=g.perdaValor; tot.resultado+=g.resultado;
   });
-  var taxaGeral=tot.produzido>0?Math.round((tot.vendido+tot.rebaixa)/tot.produzido*100):0;
+  var taxaGeral=tot.produzido>0?Math.min(100,Math.round((tot.produzido-tot.perda)/tot.produzido*100)):0;
 
   var html='';
 
@@ -9306,7 +9305,7 @@ function renderAnaliseProducao(){
     +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:14px">Comparação entre setores</div>'
     +setores.map(function(s){
       var g=data.porSetor[s];
-      var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+      var taxa=g.produzido>0?Math.min(100,Math.round((g.produzido-g.perda)/g.produzido*100)):0;
       var largRec=maxRec>0?Math.round(g.receita/maxRec*100):0;
       var cor=corSetorProd(s);
       return '<div style="margin-bottom:14px">'
@@ -9325,7 +9324,7 @@ function renderAnaliseProducao(){
   // Detalhe por setor (cards)
   html+=setores.map(function(s){
     var g=data.porSetor[s];
-    var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+    var taxa=g.produzido>0?Math.min(100,Math.round((g.produzido-g.perda)/g.produzido*100)):0;
     var taxaPerda=g.produzido>0?Math.round(g.perda/g.produzido*100):0;
     var cor=corSetorProd(s);
     return '<div class="card" style="margin-bottom:10px;padding:14px 16px;border-left:4px solid '+cor+'">'
@@ -9376,7 +9375,7 @@ function exportarProducaoPDF(){
 
   var tot={produzido:0,vendido:0,rebaixa:0,perda:0,receita:0,custoTotal:0,perdaValor:0,resultado:0};
   setores.forEach(function(s){var g=data.porSetor[s];tot.produzido+=g.produzido;tot.vendido+=g.vendido;tot.rebaixa+=g.rebaixa;tot.perda+=g.perda;tot.receita+=g.receita;tot.custoTotal+=g.custoTotal;tot.perdaValor+=g.perdaValor;tot.resultado+=g.resultado;});
-  var taxaGeral=tot.produzido>0?Math.round((tot.vendido+tot.rebaixa)/tot.produzido*100):0;
+  var taxaGeral=tot.produzido>0?Math.min(100,Math.round((tot.produzido-tot.perda)/tot.produzido*100)):0;
 
   doc.setFontSize(16);doc.setTextColor(22,163,74);
   doc.text(pdfTxt('Relatorio de Producao por Setor'),14,18);
@@ -9389,7 +9388,7 @@ function exportarProducaoPDF(){
   // Tabela por setor
   var rows=setores.map(function(s){
     var g=data.porSetor[s];
-    var taxa=g.produzido>0?Math.round((g.vendido+g.rebaixa)/g.produzido*100):0;
+    var taxa=g.produzido>0?Math.min(100,Math.round((g.produzido-g.perda)/g.produzido*100)):0;
     return [pdfTxt(s), 'R$ '+g.receita.toFixed(2).replace('.',','), 'R$ '+g.custoTotal.toFixed(2).replace('.',','), 'R$ '+g.perdaValor.toFixed(2).replace('.',','), taxa+'%'];
   });
   doc.autoTable({
