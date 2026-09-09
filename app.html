@@ -8263,7 +8263,11 @@ function renderProducao(){
 
   // Taxa de aproveitamento
   var taxaAprov=tMes.produzido>0?Math.min(100,Math.round((tMes.produzido-tMes.perda)/tMes.produzido*100)):0;
-  var taxaPerda=tMes.produzido>0?Math.round(tMes.perda/tMes.produzido*100):0;
+  // Perda por quantidade (com 1 decimal para não arredondar para 0%)
+  var taxaPerdaQtd=tMes.produzido>0?+(tMes.perda/tMes.produzido*100).toFixed(1):0;
+  // Perda por valor em R$ (perdaValor / custoTotal)
+  var taxaPerdaVal=tMes.custoTotal>0?+(tMes.perdaValor/tMes.custoTotal*100).toFixed(1):0;
+  var taxaPerda=taxaPerdaQtd; // mantém para a barra visual
 
   var mesLabel=ref.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   mesLabel=mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1);
@@ -8307,7 +8311,7 @@ function renderProducao(){
     +'<div style="background:#FCA5A5;height:100%;width:'+taxaPerda+'%"></div>'
     +'</div>'
     +'<div style="display:flex;justify-content:space-between;font-size:11px;opacity:.9;margin-top:6px">'
-    +'<span>✓ Vendido '+taxaAprov+'%</span><span>✗ Perda '+taxaPerda+'%</span>'
+    +'<span>✓ Aproveit. '+taxaAprov+'%</span><span>✗ Perda qtd '+taxaPerdaQtd+'% · val '+taxaPerdaVal+'%</span>'
     +'</div>'
     +'</div>';
 
@@ -8331,7 +8335,8 @@ function renderProducao(){
       +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:12px">⚠️ Produtos que mais desperdiçam</div>'
       +prodPerda.map(function(nome,i){
         var p=porProduto[nome];
-        var pctDesp=p.produzido>0?Math.round(p.perda/p.produzido*100):0;
+        var pctDesp=p.produzido>0?+(p.perda/p.produzido*100).toFixed(1):0;
+      var pctDespVal=p.custoTotal>0?+(p.perdaValor/p.custoTotal*100).toFixed(1):0;
         var alto=pctDesp>=20;
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0'+(i<prodPerda.length-1?';border-bottom:1px solid #F8FAFC':'')+'">'
           +'<div style="flex:1;min-width:0">'
@@ -8371,6 +8376,8 @@ function renderProducao(){
       var lancsHtml=g.lancs.sort(function(a,b){return new Date(b.data)-new Date(a.data);}).map(function(p){
         var t=calcProducaoTotais(p); var d=new Date(p.data);
         var taxa=t.produzido>0?Math.min(100,Math.round((t.produzido-t.perda)/t.produzido*100)):0;
+        var taxaQtd=t.produzido>0?+(t.perda/t.produzido*100).toFixed(1):0;
+        var taxaVal=t.custoTotal>0?+(t.perdaValor/t.custoTotal*100).toFixed(1):0;
         return '<div onclick="abrirDetalheProducao('+p.id+')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #F8FAFC;cursor:pointer">'
           +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;color:#1E293B;font-weight:600">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+'</div>'
           +'<div style="font-size:11px;color:#94A3B8">'+(p.itens?p.itens.length:0)+' itens · '+taxa+'% aproveitado</div></div>'
@@ -8401,7 +8408,7 @@ function renderProducao(){
       +'<div style="flex:1;min-width:0">'
       +'<div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;font-size:14px;color:#1E293B">'+p.setor+'</span>'
       +(perdaAlta?'<span style="font-size:10px;font-weight:700;background:#FEF2F2;color:#DC2626;padding:1px 7px;border-radius:20px">perda alta</span>':'')+'</div>'
-      +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' · '+(p.itens?p.itens.length:0)+' itens · '+taxa+'% aproveitado</div>'
+      +'<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' · '+(p.itens?p.itens.length:0)+' itens · '+taxa+'% aprov | perda: '+taxaQtd+'% qtd / '+taxaVal+'% val</div>'
       +'</div>'
       +'<div style="text-align:right">'
       +'<div style="font-size:15px;font-weight:800;color:'+(t.resultado>=0?'#16A34A':'#DC2626')+'">R$ '+t.resultado.toFixed(2).replace('.',',')+'</div>'
@@ -9325,19 +9332,21 @@ function renderAnaliseProducao(){
   html+=setores.map(function(s){
     var g=data.porSetor[s];
     var taxa=g.produzido>0?Math.min(100,Math.round((g.produzido-g.perda)/g.produzido*100)):0;
-    var taxaPerda=g.produzido>0?Math.round(g.perda/g.produzido*100):0;
+    var taxaPerdaQtdG=g.produzido>0?+(g.perda/g.produzido*100).toFixed(1):0;
+    var taxaPerdaValG=g.custoTotal>0?+(g.perdaValor/g.custoTotal*100).toFixed(1):0;
+    var taxaPerda=taxaPerdaQtdG;
     var cor=corSetorProd(s);
     return '<div class="card" style="margin-bottom:10px;padding:14px 16px;border-left:4px solid '+cor+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
       +'<div style="font-weight:700;font-size:14px;color:#1E293B">'+s+'</div>'
-      +'<div style="font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;background:'+(taxa>=90?'#F0FDF4':taxa>=75?'#FFF7ED':'#FEF2F2')+';color:'+(taxa>=90?'#16A34A':taxa>=75?'#B45309':'#DC2626')+'">'+taxa+'% aproveitado</div>'
+      +'<div style="font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;background:'+(taxa>=90?'#F0FDF4':taxa>=75?'#FFF7ED':'#FEF2F2')+';color:'+(taxa>=90?'#16A34A':taxa>=75?'#B45309':'#DC2626')+'">'+taxa+'% aprov | perda: '+taxaQtd+'% qtd / '+taxaVal+'% val</div>'
       +'</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
       +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">RECEITA</div><div style="font-size:13px;font-weight:700;color:#16A34A">R$ '+g.receita.toFixed(2).replace('.',',')+'</div></div>'
       +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">CUSTO</div><div style="font-size:13px;font-weight:700;color:#64748B">R$ '+g.custoTotal.toFixed(2).replace('.',',')+'</div></div>'
       +'<div style="background:#F8FAFC;border-radius:8px;padding:8px"><div style="font-size:10px;color:#94A3B8">PERDA</div><div style="font-size:13px;font-weight:700;color:#DC2626">R$ '+g.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
       +'</div>'
-      +'<div style="font-size:11px;color:#94A3B8;margin-top:8px">Produziu '+fmtNum(g.produzido)+' · Vendeu '+fmtNum(g.vendido)+(g.rebaixa>0?' · Rebaixa '+fmtNum(g.rebaixa):'')+' · Perdeu '+fmtNum(g.perda)+' ('+taxaPerda+'%)</div>'
+      +'<div style="font-size:11px;color:#94A3B8;margin-top:8px">Produziu '+fmtNum(g.produzido)+' · Vendeu '+fmtNum(g.vendido)+(g.rebaixa>0?' · Rebaixa '+fmtNum(g.rebaixa):'')+' · Perdeu '+fmtNum(g.perda)+' (qtd: '+taxaPerdaQtdG+'% · val: '+taxaPerdaValG+'%)</div>'
       +'</div>';
   }).join('');
 
@@ -9351,11 +9360,13 @@ function renderAnaliseProducao(){
       +'<div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:12px">⚠️ Produtos que mais desperdiçam</div>'
       +prodPerda.map(function(nome,i){
         var p=data.porProduto[nome];
-        var pct=p.produzido>0?Math.round(p.perda/p.produzido*100):0;
+        var pctQtd=p.produzido>0?+(p.perda/p.produzido*100).toFixed(1):0;
+      var pctVal=p.custoTotal>0?+(p.perdaValor/p.custoTotal*100).toFixed(1):0;
+      var pct=pctQtd; // mantém para badge de cor
         return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0'+(i<prodPerda.length-1?';border-bottom:1px solid #F8FAFC':'')+'">'
           +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;color:#1E293B;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nome+'</div>'
           +'<div style="font-size:10.5px;color:#94A3B8">'+p.setor+' · '+fmtNum(p.perda)+' de '+fmtNum(p.produzido)+'</div></div>'
-          +'<div style="text-align:right"><div style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;background:'+(pct>=20?'#FEF2F2':'#FFF7ED')+';color:'+(pct>=20?'#DC2626':'#B45309')+'">'+pct+'%</div>'
+          +'<div style="text-align:right"><div style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;background:'+(pct>=20?'#FEF2F2':'#FFF7ED')+';color:'+(pct>=20?'#DC2626':'#B45309')+'">qtd '+pctQtd+'% · val '+pctVal+'%</div>'
           +'<div style="font-size:11.5px;color:#DC2626;font-weight:600;margin-top:1px">R$ '+p.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
           +'</div>';
       }).join('')
@@ -9408,7 +9419,9 @@ function exportarProducaoPDF(){
     doc.text(pdfTxt('Produtos que mais desperdicam'),14,y);
     var pr=prodPerda.map(function(nome){
       var p=data.porProduto[nome];
-      var pct=p.produzido>0?Math.round(p.perda/p.produzido*100):0;
+      var pctQtd=p.produzido>0?+(p.perda/p.produzido*100).toFixed(1):0;
+      var pctVal=p.custoTotal>0?+(p.perdaValor/p.custoTotal*100).toFixed(1):0;
+      var pct=pctQtd; // mantém para badge de cor
       return [pdfTxt(nome), pdfTxt(p.setor), fmtNum(p.perda).toString(), pct+'%', 'R$ '+p.perdaValor.toFixed(2).replace('.',',')];
     });
     doc.autoTable({
