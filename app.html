@@ -8254,10 +8254,11 @@ function renderProducao(){
       tMes.produzido+=ci.produzido; tMes.vendido+=ci.vendido; tMes.rebaixa+=ci.rebaixa;
       tMes.perda+=ci.perda; tMes.receita+=ci.receita; tMes.custoTotal+=ci.custoTotal;
       tMes.perdaValor+=ci.perdaValor; tMes.resultado+=ci.resultado;
-      if(!porProduto[it.nome]) porProduto[it.nome]={produzido:0,perda:0,perdaValor:0};
+      if(!porProduto[it.nome]) porProduto[it.nome]={produzido:0,perda:0,perdaValor:0,custoTotal:0};
       porProduto[it.nome].produzido+=ci.produzido;
       porProduto[it.nome].perda+=ci.perda;
       porProduto[it.nome].perdaValor+=ci.perdaValor;
+      porProduto[it.nome].custoTotal+=ci.custoTotal;
     });
   });
 
@@ -8365,10 +8366,11 @@ function renderProducao(){
     var lancPorSetor={};
     prodMes.forEach(function(p){
       var s=p.setor||'Outros';
-      if(!lancPorSetor[s]) lancPorSetor[s]={lancs:[],receita:0,perda:0,resultado:0};
+      if(!lancPorSetor[s]) lancPorSetor[s]={lancs:[],receita:0,perda:0,resultado:0,perdaValor:0,custoTotal:0};
       var t=calcProducaoTotais(p);
       lancPorSetor[s].lancs.push(p);
       lancPorSetor[s].receita+=t.receita; lancPorSetor[s].perda+=t.perdaValor; lancPorSetor[s].resultado+=t.resultado;
+      lancPorSetor[s].perdaValor+=t.perdaValor; lancPorSetor[s].custoTotal+=t.custoTotal;
     });
     var setoresL=Object.keys(lancPorSetor).sort(function(a,b){return lancPorSetor[b].resultado-lancPorSetor[a].resultado;});
     html+=setoresL.map(function(s){
@@ -8398,8 +8400,9 @@ function renderProducao(){
 
   html+=prodMes.map(function(p){
     var t=calcProducaoTotais(p);
-    var totalVend=t.vendido+t.rebaixa;
-    var taxa=t.produzido>0?Math.round(totalVend/t.produzido*100):0;
+    var taxa=t.produzido>0?Math.min(100,Math.round((t.produzido-t.perda)/t.produzido*100)):0;
+    var taxaQtd=t.produzido>0?+(t.perda/t.produzido*100).toFixed(1):0;
+    var taxaVal=t.custoTotal>0?+(t.perdaValor/t.custoTotal*100).toFixed(1):0;
     var cor=corSetorProd(p.setor);
     var d=new Date(p.data);
     var perdaAlta=t.produzido>0 && (t.perda/t.produzido)>=0.2;
