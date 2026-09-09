@@ -8204,7 +8204,9 @@ function calcItemProducao(it){
   // Se o usuário editou a receita manualmente, usa ela; senão usa a calculada
   var receita=(it.receitaManual!==undefined && it.receitaManual!=='' && !isNaN(+it.receitaManual)) ? +it.receitaManual : receitaCalc;
   var custoTotal=produzido*custo;
-  var perdaValor=perda*custo;                        // R$ do que foi pro lixo (só itens perdidos)
+  // Perda = itens jogados fora (custo cheio) + diferença não recuperada na rebaixa (custo - preçoRebaixa, se abaixo do custo)
+  var perdaRebaixa=rebaixa*Math.max(0, custo-precoRebaixa);
+  var perdaValor=(perda*custo)+perdaRebaixa;
   var resultado=receita-custoTotal;                  // o que ganhou/perdeu no total
   // Aproveitamento: % que teve saída (vendido + rebaixado)
   var aprovQtd=produzido>0?Math.min(100,Math.round((vendido+rebaixa)/produzido*100)):0;
@@ -8212,19 +8214,19 @@ function calcItemProducao(it){
   return {
     produzido:produzido, vendido:vendido, rebaixa:rebaixa, sobra:sobra, perda:perda,
     receitaNormal:receitaNormal, receitaRebaixa:receitaRebaixa, receita:receita,
-    custoTotal:custoTotal, perdaValor:perdaValor, resultado:resultado,
+    custoTotal:custoTotal, perdaValor:perdaValor, perdaRebaixa:perdaRebaixa, resultado:resultado,
     aprovQtd:aprovQtd
   };
 }
 
 // Totais de um lançamento inteiro
 function calcProducaoTotais(prod){
-  var t={produzido:0,vendido:0,rebaixa:0,sobra:0,perda:0,receita:0,custoTotal:0,perdaValor:0,resultado:0};
+  var t={produzido:0,vendido:0,rebaixa:0,sobra:0,perda:0,receita:0,custoTotal:0,perdaValor:0,perdaRebaixa:0,resultado:0};
   (prod.itens||[]).forEach(function(it){
     var c=calcItemProducao(it);
     t.produzido+=c.produzido; t.vendido+=c.vendido; t.rebaixa+=c.rebaixa;
     t.sobra+=c.sobra; t.perda+=c.perda; t.receita+=c.receita;
-    t.custoTotal+=c.custoTotal; t.perdaValor+=c.perdaValor; t.resultado+=c.resultado;
+    t.custoTotal+=c.custoTotal; t.perdaValor+=c.perdaValor; t.perdaRebaixa+=(c.perdaRebaixa||0); t.resultado+=c.resultado;
   });
   return t;
 }
@@ -8314,14 +8316,18 @@ function renderProducao(){
     +'</div>'
     +'</div>';
 
-  // Cards receita / perda
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
+  // Cards receita / custo / perda
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">'
     +'<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px">'
-    +'<div style="font-size:11px;color:#16A34A;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Receita</div>'
-    +'<div style="font-size:20px;font-weight:800;color:#166534;margin-top:2px">R$ '+tMes.receita.toFixed(2).replace('.',',')+'</div></div>'
+    +'<div style="font-size:10px;color:#16A34A;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Receita</div>'
+    +'<div style="font-size:17px;font-weight:800;color:#166534;margin-top:2px">R$ '+tMes.receita.toFixed(2).replace('.',',')+'</div></div>'
+    +'<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:14px">'
+    +'<div style="font-size:10px;color:#1D4ED8;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Custo</div>'
+    +'<div style="font-size:17px;font-weight:800;color:#1E3A8A;margin-top:2px">R$ '+tMes.custoTotal.toFixed(2).replace('.',',')+'</div>'
+    +'<div style="font-size:9px;color:#64748B;margin-top:3px">= Resultado R$ '+tMes.resultado.toFixed(2).replace('.',',')+'</div></div>'
     +'<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px">'
-    +'<div style="font-size:11px;color:#DC2626;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Perda</div>'
-    +'<div style="font-size:20px;font-weight:800;color:#B91C1C;margin-top:2px">R$ '+tMes.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
+    +'<div style="font-size:10px;color:#DC2626;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Perda</div>'
+    +'<div style="font-size:17px;font-weight:800;color:#B91C1C;margin-top:2px">R$ '+tMes.perdaValor.toFixed(2).replace('.',',')+'</div></div>'
     +'</div>';
 
   // ── PRODUTOS QUE MAIS DESPERDIÇAM ──
@@ -8510,7 +8516,7 @@ function renderModalProducao(){
         +'<div><input type="number" value="'+(it.rebaixa||0)+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;rebaixa&quot;,this.value)" onchange="renderModalProducao()" style="'+INP+';border-color:#FED7AA;background:#FFF7ED"/>'
         +(ci.rebaixa>0?'<input type="number" value="'+(it.precoRebaixa||0)+'" min="0" step="0.01" inputmode="decimal" placeholder="R$ reb." oninput="atualizaItemProd('+i+',&quot;precoRebaixa&quot;,this.value)" style="width:100%;height:24px;margin-top:3px;padding:0 4px;text-align:center;border:1px solid #FED7AA;border-radius:6px;font-size:10px;outline:none;box-sizing:border-box"/>':'')+'</div>'
         +'<div id="cell-sobra-'+i+'" style="text-align:center;font-size:12px;font-weight:600;color:#64748B">'+fmtNum(ci.sobra)+'</div>'
-        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.perda>0?'#DC2626':'#CBD5E1')+'">'+fmtNum(ci.perda)+'</div>'
+        +'<div id="cell-perda-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.perdaValor>0?'#DC2626':'#CBD5E1')+'">'+fmtNum(ci.perda)+(ci.perdaRebaixa>0?'<div style="font-size:9px;color:#B45309">+R$'+ci.perdaRebaixa.toFixed(2).replace('.',',')+'reb</div>':'')+'</div>'
         +'<div><input type="number" value="'+(it.receitaManual!==undefined?it.receitaManual:ci.receita.toFixed(2))+'" min="0" step="0.01" inputmode="decimal" oninput="atualizaItemProd('+i+',&quot;receitaManual&quot;,this.value)" title="Receita calculada: R$'+ci.receita.toFixed(2)+'" style="'+INP+';color:#16A34A;font-weight:600"/></div>'
         +'<div id="cell-result-'+i+'" style="text-align:center;font-size:12px;font-weight:700;color:'+(ci.resultado>=0?'#16A34A':'#DC2626')+'">R$'+ci.resultado.toFixed(2).replace('.',',')+'</div>'
         +'<button onclick="removerItemProd('+i+')" style="background:none;border:none;cursor:pointer;color:#DC2626;font-size:12px">🗑️</button>'
@@ -8561,7 +8567,7 @@ function atualizaItemProd(idx, campo, val){
   // Atualiza células derivadas sem re-render (mantém foco)
   var ci=calcItemProducao(it);
   var cs=document.getElementById('cell-sobra-'+idx);   if(cs)cs.textContent=fmtNum(ci.sobra);
-  var cp=document.getElementById('cell-perda-'+idx);   if(cp){cp.textContent=fmtNum(ci.perda);cp.style.color=ci.perda>0?'#DC2626':'#CBD5E1';}
+  var cp=document.getElementById('cell-perda-'+idx);   if(cp){cp.innerHTML=fmtNum(ci.perda)+(ci.perdaRebaixa>0?'<div style="font-size:9px;color:#B45309">+R$'+ci.perdaRebaixa.toFixed(2).replace('.',',')+'reb</div>':'');cp.style.color=ci.perdaValor>0?'#DC2626':'#CBD5E1';}
   var crs=document.getElementById('cell-result-'+idx); if(crs){crs.textContent='R$'+ci.resultado.toFixed(2).replace('.',',');crs.style.color=ci.resultado>=0?'#16A34A':'#DC2626';}
   // Atualiza totais
   var t=calcProducaoTotais(_prodAtual);
