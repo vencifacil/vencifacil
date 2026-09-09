@@ -8302,8 +8302,8 @@ function renderProducao(){
     +'<div><div style="font-size:12px;opacity:.85">Taxa de aproveitamento</div>'
     +'<div style="font-size:38px;font-weight:800;font-family:Space Grotesk,sans-serif;line-height:1">'+taxaAprov+'%</div></div>'
     +'<div style="text-align:right"><div style="font-size:12px;opacity:.85">Resultado</div>'
-    +'<div style="font-size:22px;font-weight:800">R$ '+tMes.resultado.toFixed(2).replace('.',',')+'</div></div>'
-    +'</div>'
+    +'<div style="font-size:22px;font-weight:800">R$ '+tMes.resultado.toFixed(2).replace('.',',')+'</div>'
+    +'<div style="font-size:12px;opacity:.85;margin-top:3px">Margem '+(tMes.custoTotal>0?(tMes.resultado/tMes.custoTotal*100).toFixed(1):0)+'%</div></div>'
     // barra visual vendido x perda
     +'<div style="background:rgba(255,255,255,.25);border-radius:8px;height:14px;overflow:hidden;display:flex">'
     +'<div style="background:#fff;height:100%;width:'+taxaAprov+'%"></div>'
